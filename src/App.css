@@ -1,0 +1,35 @@
+.workspace-wrapper {
+  width: 70%;
+  height: 70%;
+  margin: 0 auto;
+  padding-top: 5rem;
+}
+
+#titles1, #titles2, #titles3 {
+  position: absolute;
+  font-size: 4rem;
+  font-weight: bold;
+  letter-spacing: 1rem;
+  text-transform: uppercase;
+}
+
+#titles1 {
+  left: 0;
+  top: 40%;
+  transform: translateY(-50%);
+  margin-block-start: 1rem;
+  writing-mode: vertical-lr;
+}
+
+#titles2 {
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+#titles3 {
+  right: 0;
+  top: 40%;
+  transform: translateY(-50%);
+  margin-block-start: 1rem;
+  writing-mode: vertical-rl;
+}
