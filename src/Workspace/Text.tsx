@@ -1,19 +1,14 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 
 import { WorkspaceText, useWorkspaceStore } from "../store/workspace";
+import type { ItemComponentInterface } from "./types";
 
-export default function Text({ item }: { item: WorkspaceText }) {
+type Props = ItemComponentInterface<WorkspaceText>;
+
+export default function Text(props: Props) {
+  const { item, selected } = props;
   const remove = useWorkspaceStore((store) => store.remove);
   const ref = useRef<HTMLDivElement>(null);
-
-  const onMouseMove = useCallback((event: MouseEvent) => {
-    if (ref.current) {
-      const x = ref.current.offsetLeft + event.movementX;
-      const y = ref.current.offsetTop + event.movementY;
-      ref.current.style.left = `${x}px`;
-      ref.current.style.top = `${y}px`;
-    }
-  }, []);
 
   useEffect(() => {
     ref.current?.focus();
@@ -23,19 +18,9 @@ export default function Text({ item }: { item: WorkspaceText }) {
     <div
       ref={ref}
       id={item.id}
-      autoFocus
-      contentEditable
-      tabIndex={0}
+      contentEditable={selected}
       className="workspace__stage-text"
       draggable={false}
-      onMouseDown={(event) => {
-        if (event.button === 0) {
-          document.addEventListener("mousemove", onMouseMove);
-        }
-      }}
-      onMouseUp={() => {
-        document.removeEventListener("mousemove", onMouseMove);
-      }}
       onBlur={() => {
         if (!(ref.current?.textContent ?? "").trim()) {
           remove(item.id);

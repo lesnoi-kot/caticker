@@ -9,10 +9,13 @@ export enum WorkspaceItemType {
   Text,
 }
 
-export type WorkspaceText = { id: string; type: WorkspaceItemType.Text };
+export type BaseWorkspaceItem = { id: string; type: WorkspaceItemType };
 
-export type WorkspacePicture = {
-  id: string;
+export type WorkspaceText = BaseWorkspaceItem & {
+  type: WorkspaceItemType.Text;
+};
+
+export type WorkspacePicture = BaseWorkspaceItem & {
   type: WorkspaceItemType.Picture;
   file: File;
 };
@@ -32,29 +35,69 @@ export const makeTextItem = () => ({
 
 export const useWorkspaceStore = createWithEqualityFn(
   immer(
-    combine({ sprites: {} as Record<string, WorkspaceItem> }, (set) => ({
-      upsert: (item: WorkspaceItem) => {
-        set((state) => {
-          state.sprites[item.id] = item;
-        });
+    combine(
+      {
+        stageItems: {} as Record<string, WorkspaceItem>,
+        selectedItems: new Set<string>(),
       },
+      (set) => ({
+        upsert: (item: WorkspaceItem) => {
+          set((state) => {
+            state.stageItems[item.id] = item;
+          });
+        },
 
-      remove: (id: string) => {
-        set((state) => {
-          delete state.sprites[id];
-        });
-      },
+        remove: (id: string) => {
+          set((state) => {
+            delete state.stageItems[id];
+          });
+        },
 
-      removeAll: () => {
-        set({ sprites: {} });
-      },
-    }))
+        removeMultiple: (ids: string[]) => {
+          set((state) => {
+            for (const id of ids) {
+              delete state.stageItems[id];
+              state.selectedItems.delete(id);
+            }
+          });
+        },
+
+        removeAll: () => {
+          set({ stageItems: {} });
+        },
+
+        selectOne: (id: string) => {
+          set((state) => {
+            state.selectedItems.clear();
+            state.selectedItems.add(id);
+          });
+        },
+
+        selectMore: (id: string) => {
+          set((state) => {
+            state.selectedItems.add(id);
+          });
+        },
+
+        selectNone: () => {
+          set((state) => {
+            state.selectedItems.clear();
+          });
+        },
+      })
+    )
   ),
   shallow
 );
 
-export const useWorkspaceItems = () =>
-  useWorkspaceStore((state) => Object.keys(state.sprites));
+export const useWorkspaceItemIds = () =>
+  useWorkspaceStore((state) => Object.keys(state.stageItems));
 
 export const useWorkspaceItem = (id: string) =>
-  useWorkspaceStore((state) => state.sprites[id]);
+  useWorkspaceStore((state) => state.stageItems[id]);
+
+export const useIsItemSelected = (id: string) =>
+  useWorkspaceStore((state) => state.selectedItems.has(id));
+
+export const useIsSelectedItemIds = () =>
+  useWorkspaceStore((state) => Array.from(state.selectedItems));

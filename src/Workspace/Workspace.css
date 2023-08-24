@@ -1,6 +1,5 @@
 .workspace {
   position: relative;
-  background: rgba(255, 255, 255, .4);
   width: 100%;
   height: 100%;
   min-height: 512px;
@@ -17,35 +16,75 @@
   height: 512px;
   background: white;
   overflow: hidden;
+  background-image: url('/src/assets/translucent.png');
+  border: 1px solid gray;
 }
 
-.workspace__stage-picture, .workspace__stage-text {
+.workspace__result-selector {
+  position: relative;
+  border: 2px solid rgb(252, 136, 156);
+  background: transparent;
+  display: none;
+  box-sizing: border-box;
+  z-index: 3;
+}
+
+.workspace__stage-item {
   position: absolute;
   cursor: pointer;
 }
 
+.workspace__stage-item--selected {
+  outline: 2px dashed black;
+}
+
 .workspace__stage-picture {
+  user-select: none;
   z-index: 1;
 }
 
 .workspace__stage-text {
-  z-index: 2;
-}
-
-.workspace__stage-picture:hover {
-  outline: 2px dashed black;
-}
-
-.workspace__stage-text {
-  color: black;
-  padding: .6rem .6rem;
+  font-size: 2rem;
+  padding: 2px 2px;
   min-width: 10ch;
-  border: 2px solid transparent;
+  user-select: none;
+  z-index: 2;
   border-radius: 4px;
-  background: transparent;
+  color: black;
+  outline: none;
 }
 
-.workspace__stage-text:hover, .workspace__stage-text:focus {
-  outline: 2px dashed black;
-  background: rgba(0, 0, 0, .05);
+.workspace__stage-item__anchor {
+  --anchor-size: 10px;
+  --anchor-margin: calc(-1 * var(--anchor-size) / 2);
+
+  position: absolute;
+  width: var(--anchor-size);
+  height: var(--anchor-size);
+  border-radius: 50%;
+  background-color: cornflowerblue;
+}
+
+.workspace__stage-item__anchor--lt {
+  left: var(--anchor-margin);
+  top: var(--anchor-margin);
+  cursor: nw-resize;
+}
+
+.workspace__stage-item__anchor--rt {
+  right: var(--anchor-margin);
+  top: var(--anchor-margin);
+  cursor: ne-resize;
+}
+
+.workspace__stage-item__anchor--lb {
+  left: var(--anchor-margin);
+  bottom: var(--anchor-margin);
+  cursor: sw-resize;
+}
+
+.workspace__stage-item__anchor--rb {
+  right: var(--anchor-margin);
+  bottom: var(--anchor-margin);
+  cursor: se-resize;
 }

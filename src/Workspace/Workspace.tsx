@@ -1,39 +1,52 @@
+import { useRef } from "react";
+
 import {
-  useWorkspaceItems,
+  useWorkspaceItemIds,
   useWorkspaceItem,
   WorkspaceItemType,
 } from "../store/workspace";
+import { useWorkspaceSelectTool } from "./hooks";
 
-import "./Workspace.css";
 import Picture from "./Picture";
 import Text from "./Text";
+import ItemContainer from "./ItemContainer";
+import KeyboardHandler from "./KeyboardHandler";
+
+import "./Workspace.css";
 
 export default function Workspace() {
-  const itemIds = useWorkspaceItems();
-
-  console.log("Workspace render", itemIds.slice());
+  const workspaceRef = useRef<HTMLDivElement>(null);
+  const selectTool = useWorkspaceSelectTool(workspaceRef);
 
   return (
     <div className="workspace">
-      <div className="workspace__result-window">
-        {itemIds.map((id) => (
-          <SwitchItem key={id} id={id} />
-        ))}
+      <KeyboardHandler />
+
+      <div ref={workspaceRef} className="workspace__result-window">
+        <div
+          ref={selectTool.selectorRef}
+          className="workspace__result-selector"
+        />
+        <Items />
       </div>
     </div>
   );
 }
 
+function Items() {
+  const itemIds = useWorkspaceItemIds();
+
+  return (
+    <>
+      {itemIds.map((id) => (
+        <SwitchItem key={id} id={id} />
+      ))}
+    </>
+  );
+}
+
 function SwitchItem({ id }: { id: string }) {
   const item = useWorkspaceItem(id);
-
-  if (item.type === WorkspaceItemType.Picture) {
-    return <Picture item={item} />;
-  }
-
-  if (item.type === WorkspaceItemType.Text) {
-    return <Text item={item} />;
-  }
-
-  return null;
+  const View = item.type === WorkspaceItemType.Picture ? Picture : Text;
+  return <ItemContainer id={id} View={View} />;
 }

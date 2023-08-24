@@ -18,3 +18,25 @@ body, #root {
   margin: 0;
   height: 100%;
 }
+
+#root {
+  position: relative;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+button {
+  border: 4px solid transparent;
+  border-radius: 8px;
+  font-size: 1.1rem;
+
+  background: hsl(8, 100%, 61%);
+  padding: .8rem;
+  cursor: pointer;
+  color: white;
+  font-weight: bold;
+}
+
+button:hover {
+  border: 4px solid aqua;
+}
