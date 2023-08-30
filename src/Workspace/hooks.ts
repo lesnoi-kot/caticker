@@ -1,13 +1,39 @@
-import { useCallback, useEffect, useRef } from "react";
+import {
+  RefObject,
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+} from "react";
 
 import { useWorkspaceStore } from "../store/workspace";
 
-function getRelativeXY(container: HTMLElement, event: MouseEvent) {
+export const WorkspaceContex = createContext<RefObject<HTMLDivElement> | null>(
+  null
+);
+
+export const useWorkspaceRef = () => {
+  const ref = useContext(WorkspaceContex);
+
+  if (!ref) {
+    throw new Error("Workspace ref not provided");
+  }
+
+  return ref;
+};
+
+export function getRelativeXY(container: HTMLElement, event: MouseEvent) {
   const { x: containerX, y: containerY } = container.getBoundingClientRect();
   return [
     Math.min(512, Math.max(0, event.clientX - containerX)),
     Math.min(512, Math.max(0, event.clientY - containerY)),
   ];
+}
+
+export function getRelativeXY2(container: HTMLElement, event: MouseEvent) {
+  const { x: containerX, y: containerY } = container.getBoundingClientRect();
+  return [event.clientX - containerX, event.clientY - containerY];
 }
 
 export function useWorkspaceSelectTool(

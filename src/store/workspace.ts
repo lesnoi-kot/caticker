@@ -7,6 +7,7 @@ import { shallow } from "zustand/shallow";
 export enum WorkspaceItemType {
   Picture,
   Text,
+  Figure,
 }
 
 export type BaseWorkspaceItem = { id: string; type: WorkspaceItemType };
@@ -20,7 +21,9 @@ export type WorkspacePicture = BaseWorkspaceItem & {
   file: File;
 };
 
-export type WorkspaceItem = WorkspaceText | WorkspacePicture;
+export type WorkspaceFigure = BaseWorkspaceItem & {
+  type: WorkspaceItemType.Figure;
+};
 
 export const makePictureItem = (file: File) => ({
   id: nanoid(),
@@ -33,15 +36,20 @@ export const makeTextItem = () => ({
   type: WorkspaceItemType.Text,
 });
 
+export const makeFigureItem = () => ({
+  id: nanoid(),
+  type: WorkspaceItemType.Figure,
+});
+
 export const useWorkspaceStore = createWithEqualityFn(
   immer(
     combine(
       {
-        stageItems: {} as Record<string, WorkspaceItem>,
+        stageItems: {} as Record<string, BaseWorkspaceItem>,
         selectedItems: new Set<string>(),
       },
       (set) => ({
-        upsert: (item: WorkspaceItem) => {
+        upsert: (item: BaseWorkspaceItem) => {
           set((state) => {
             state.stageItems[item.id] = item;
           });
