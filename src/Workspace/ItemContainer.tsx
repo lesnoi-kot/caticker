@@ -23,15 +23,14 @@ function ItemContainer({ id, View, canResize }: Props) {
   console.log(`ItemContainer ${id}`);
 
   const workspaceRef = useWorkspaceRef();
-  const ref = useRef<HTMLDivElement>(null);
-  // const dotRef = useRef<HTMLDivElement>(null);
-  const position = useRef<DOMPoint>(new DOMPoint(0, 0));
+  const innerRef = useRef<HTMLDivElement | null>(null);
+  const selectionRef = useRef<HTMLDivElement>(null);
+
   const scale = useRef<DOMPoint>(new DOMPoint(1, 1));
   const rotation = useRef<number>(0);
   const resizeDirection = useRef<string>("r");
-  const size = useRef<DOMPoint>(new DOMPoint(100, 100));
+  const size = useRef<DOMPoint>(new DOMPoint(0, 0));
 
-  const transform = useRef<DOMMatrix>(new DOMMatrix());
   const translationMatrix = useRef<DOMMatrix>(new DOMMatrix());
   const rotationMatrix = useRef<DOMMatrix>(new DOMMatrix());
   const scaleMatrix = useRef<DOMMatrix>(new DOMMatrix());
@@ -42,163 +41,116 @@ function ItemContainer({ id, View, canResize }: Props) {
   const item = useWorkspaceItem(id);
 
   const getOrigin = useCallback(() => {
-    console.log(rotation.current);
-
-    return (
-      new DOMMatrix()
-        .multiplySelf(translationMatrix.current)
-        // .translateSelf(50 * scale.current.x, 50 * scale.current.y)
-        // .rotateSelf(0, 0, rotation.current)
-        // .translateSelf(-50 * scale.current.x, -50 * scale.current.y)
-        .multiplySelf(rotationMatrix.current)
-        // .multiplySelf(scaleMatrix.current)
-        .transformPoint(new DOMPoint(0, 0))
-    );
+    return new DOMMatrix()
+      .multiplySelf(translationMatrix.current)
+      .multiplySelf(rotationMatrix.current)
+      .multiplySelf(scaleMatrix.current)
+      .transformPoint(new DOMPoint(0, 0));
   }, []);
 
   const getCenter = useCallback(() => {
-    console.log(rotation.current);
-
-    return (
-      new DOMMatrix()
-        .multiplySelf(translationMatrix.current)
-        // .translateSelf(50 * scale.current.x, 50 * scale.current.y)
-        // .rotateSelf(0, 0, rotation.current)
-        // .translateSelf(-50 * scale.current.x, -50 * scale.current.y)
-        .multiplySelf(rotationMatrix.current)
-        // .multiplySelf(scaleMatrix.current)
-        .transformPoint(new DOMPoint(size.current.x / 2, size.current.y / 2))
-    );
+    return new DOMMatrix()
+      .multiplySelf(translationMatrix.current)
+      .multiplySelf(rotationMatrix.current)
+      .multiplySelf(scaleMatrix.current)
+      .transformPoint(new DOMPoint(size.current.x / 2, size.current.y / 2));
   }, []);
 
-  // const w = ref.current.clientWidth;
-  // const h = ref.current.clientHeight;
-
-  // matrix(1.4142135381698608, 1.4142135381698608, -0.7071067690849304, 0.7071067690849304, 214.6446533203125, 143.93399047851562)
   const getTransform = useCallback(() => {
-    const matrix = new DOMMatrix();
-    matrix
+    const matrix = new DOMMatrix()
       .multiplySelf(translationMatrix.current)
       .multiplySelf(rotationMatrix.current)
       .multiplySelf(scaleMatrix.current);
 
-    // matrix.translateSelf(position.current.x, position.current.y);
-
-    // const position = matrix.transformPoint(new DOMPoint(0, 0));
-    // const center = matrix
-    // .scale(scale.current.x, scale.current.y)
-    // .transformPoint(new DOMPoint(50, 50));
-    // const scaledWidth = scale.current.x * 50;
-    // const scaledHeight = scale.current.y * 50;
-
-    // const prevScaleX = scale.current.x;
-    // const prevScaleY = scale.current.y;
-
-    // matrix.translateSelf(center.x, center.y);
-    // matrix.translateSelf(50 * scale.current.x, 50 * scale.current.y);
-
-    // matrix.translateSelf(50, 50);
-    // matrix.rotateSelf(0, 0, rotation.current);
-    // matrix.translateSelf(-50, -50);
-
-    // matrix.translateSelf(-50 * scale.current.x, -50 * scale.current.y);
-    // matrix.translateSelf(-center.x, -center.y);
-
-    // matrix.scaleSelf(scale.current.x, scale.current.y);
-
-    // console.log(matrix.transformPoint(new DOMPoint(0, 100)));
-
-    // const moved = `translate(${position.current.x}px, ${position.current.y}px)`;
-    // const rotated = `translate(${centerX}px, ${centerY}px) rotate(${
-    //   rotation.current
-    // }deg) translate(${-centerX}px, ${-centerY}px)`;
-    // const rotated = `rotate(${rotation.current}deg)`;
-    // const scaled = `scaleY(${scale.current.y}) scaleX(${scale.current.x})`;
-
-    // if (dotRef.current && ref.current && workspaceRef.current) {
-    //   const container = workspaceRef.current.getBoundingClientRect();
-    //   const box = ref.current.getBoundingClientRect();
-    //   dotRef.current.style.width = `${box.width}px`;
-    //   dotRef.current.style.height = `${box.height}px`;
-    //   dotRef.current.style.top = `${box.top - container.top}px`;
-    //   dotRef.current.style.left = `${box.left - container.left}px`;
-    // }
-
-    return matrix.toString();
-    // return transform.current.toString();
-    // return `${moved} ${rotated} ${scaled}`;
+    return matrix;
   }, []);
 
-  // transform: translate(100px, 100px) translate(50%, 50%) rotate(45deg) translate(-50%, -50%) scaleX(1);
+  const updateTransformStyle = useCallback(() => {
+    const transform = getTransform();
+
+    if (innerRef.current) {
+      innerRef.current.style.transform = transform.toString();
+    }
+
+    if (selectionRef.current) {
+      const unscaledTransform = new DOMMatrix()
+        .multiplySelf(transform)
+        .multiplySelf(scaleMatrix.current.inverse());
+
+      const scaledSize = scaleMatrix.current.transformPoint(
+        new DOMPoint(size.current.x, size.current.y)
+      );
+      selectionRef.current.style.width = `${scaledSize.x}px`;
+      selectionRef.current.style.height = `${scaledSize.y}px`;
+      selectionRef.current.style.transform = unscaledTransform.toString();
+    }
+  }, [getTransform]);
 
   // Move current item.
   const onMouseMove = useCallback(
     (event: MouseEvent) => {
-      const el = ref.current;
+      translationMatrix.current.translateSelf(event.movementX, event.movementY);
 
-      if (!el || !workspaceRef.current) {
-        return;
-      }
+      // const center = getCenter();
+      // const origin = getOrigin();
+      // Object.assign(
+      //   (document.querySelector(".workspace__result-dot") as HTMLDivElement)
+      //     .style,
+      //   {
+      //     left: `${center.x}px`,
+      //     top: `${center.y}px`,
+      //   }
+      // );
+      // Object.assign(
+      //   (document.querySelector(".workspace__result-origin") as HTMLDivElement)
+      //     .style,
+      //   {
+      //     left: `${origin.x}px`,
+      //     top: `${origin.y}px`,
+      //   }
+      // );
 
-      const [x, y] = getRelativeXY2(workspaceRef.current, event);
-      // const [localX, localY] = getRelativeXY2(el, event);
-      position.current.x = x;
-      position.current.y = y;
-      translationMatrix.current = new DOMMatrix().translateSelf(
-        position.current.x,
-        position.current.y
-      );
-
-      // position.current.x += event.movementX;
-      // position.current.y += event.movementY;
-      // translationMatrix.current.translateSelf(event.movementX, event.movementY);
-
-      const center = getCenter();
-
-      Object.assign(
-        (document.querySelector(".workspace__result-dot") as HTMLDivElement)
-          .style,
-        {
-          left: `${center.x}px`,
-          top: `${center.y}px`,
-        }
-      );
-
-      el.style.transform = getTransform();
+      updateTransformStyle();
     },
-    [workspaceRef, getTransform, getCenter]
+    [workspaceRef, getTransform, updateTransformStyle, getCenter]
   );
 
   // Resize current item.
   const onResizerMouseMove = useCallback(
     (event: MouseEvent) => {
-      const el = ref.current;
-      if (!el || !workspaceRef.current) {
+      if (!workspaceRef.current) {
         return;
       }
 
-      const { clientHeight, clientWidth } = el;
-      // const scaledWidth = scale.current.x * clientWidth;
-      // const scaledHeight = scale.current.y * clientHeight;
       const [moveX, moveY] = getRelativeXY(workspaceRef.current, event);
       const rotationRad = degToRad(rotation.current);
 
-      const center = getCenter();
+      // const center = getCenter();
+      const origin = getOrigin();
+      const dist = Math.sqrt((moveX - origin.x) ** 2 + (moveY - origin.y) ** 2);
 
-      Object.assign(
-        (document.querySelector(".workspace__result-dot") as HTMLDivElement)
-          .style,
-        {
-          left: `${center.x}px`,
-          top: `${center.y}px`,
-        }
-      );
+      // Object.assign(
+      //   (document.querySelector(".workspace__result-dot") as HTMLDivElement)
+      //     .style,
+      //   {
+      //     left: `${center.x}px`,
+      //     top: `${center.y}px`,
+      //   }
+      // );
+      // Object.assign(
+      //   (document.querySelector(".workspace__result-origin") as HTMLDivElement)
+      //     .style,
+      //   {
+      //     left: `${origin.x}px`,
+      //     top: `${origin.y}px`,
+      //   }
+      // );
 
-      const origin = new DOMMatrix()
-        .multiplySelf(translationMatrix.current)
-        .multiplySelf(rotationMatrix.current)
-        .multiplySelf(scaleMatrix.current)
-        .transformPoint(new DOMPoint(0, 0));
+      // const origin = new DOMMatrix()
+      //   .multiplySelf(translationMatrix.current)
+      //   .multiplySelf(rotationMatrix.current)
+      //   .multiplySelf(scaleMatrix.current)
+      //   .transformPoint(new DOMPoint(0, 0));
 
       // if (resizeDirection.current.includes("l")) {
       //   const farX = position.current.x + scaledWidth * Math.cos(rotationRad);
@@ -211,79 +163,72 @@ function ItemContainer({ id, View, canResize }: Props) {
       // }
 
       if (resizeDirection.current.includes("r")) {
-        const dist = Math.sqrt(
-          (moveX - origin.x) ** 2 + (moveY - origin.y) ** 2
-        );
         const angle = Math.atan2(moveY - origin.y, moveX - origin.x);
-
-        // console.log({ dist, angle: radToDeg(angle) });
-
-        scale.current.x = (dist * Math.cos(angle - rotationRad)) / clientWidth;
-        // scale.current.x = (dist * Math.cos(angle)) / clientWidth;
-        // scale.current.x = (dist * 2) / clientWidth;
+        scale.current.x =
+          (dist * Math.cos(angle - rotationRad)) / size.current.x;
       }
 
-      // if (resizeDirection.current.includes("b")) {
-      //   const dist = Math.sqrt(
-      //     (moveX - position.current.x) ** 2 + (moveY - position.current.y) ** 2
-      //   );
-      //   const angle = Math.atan2(
-      //     moveY - position.current.y,
-      //     moveX - position.current.x
-      //   );
-
-      //   scale.current.y = (dist * Math.sin(angle - rotationRad)) / clientHeight;
-      // }
+      if (resizeDirection.current.includes("b")) {
+        const angle = Math.atan2(moveY - origin.y, moveX - origin.x);
+        scale.current.y =
+          (dist * Math.sin(angle - rotationRad)) / size.current.y;
+      }
 
       scaleMatrix.current = new DOMMatrix();
       scaleMatrix.current.scaleSelf(scale.current.x, scale.current.y);
 
-      el.style.transform = getTransform();
+      updateTransformStyle();
     },
-    [getTransform, workspaceRef, getCenter]
+    [getTransform, workspaceRef, getCenter, updateTransformStyle]
   );
 
   // Rotate current item.
   const onRotatorMouseMove = useCallback(
     (event: MouseEvent) => {
-      const el = ref.current;
-      if (!el || !workspaceRef.current) {
+      if (!workspaceRef.current) {
         return;
       }
 
-      const center = getOrigin();
+      const center = getCenter();
+      // const origin = getOrigin();
 
-      Object.assign(
-        (document.querySelector(".workspace__result-dot") as HTMLDivElement)
-          .style,
-        {
-          left: `${center.x}px`,
-          top: `${center.y}px`,
-        }
-      );
+      // Object.assign(
+      //   (document.querySelector(".workspace__result-dot") as HTMLDivElement)
+      //     .style,
+      //   {
+      //     left: `${center.x}px`,
+      //     top: `${center.y}px`,
+      //   }
+      // );
+      // Object.assign(
+      //   (document.querySelector(".workspace__result-origin") as HTMLDivElement)
+      //     .style,
+      //   {
+      //     left: `${origin.x}px`,
+      //     top: `${origin.y}px`,
+      //   }
+      // );
 
       const [moveX, moveY] = getRelativeXY2(workspaceRef.current, event);
+      const scaledSize = scaleMatrix.current.transformPoint(
+        new DOMPoint(size.current.x, size.current.y)
+      );
 
       rotation.current = radToDeg(
         Math.atan2(moveY - center.y, moveX - center.x)
       );
 
       rotationMatrix.current = new DOMMatrix();
-      // rotationMatrix.current.translateSelf(
-      //   size.current.x / 2, // * scale.current.x,
-      //   size.current.y / 2 // * scale.current.y
-      // );
-      // rotationMatrix.current.translateSelf(50, 50);
+      rotationMatrix.current.translateSelf(scaledSize.x / 2, scaledSize.y / 2);
       rotationMatrix.current.rotateSelf(0, 0, rotation.current);
-      // rotationMatrix.current.translateSelf(
-      //   -(size.current.x / 2) /* * scale.current.x */,
-      //   -(size.current.y / 2) /* * scale.current.y */
-      // );
-      // rotationMatrix.current.translateSelf(-50, -50);
+      rotationMatrix.current.translateSelf(
+        -scaledSize.x / 2,
+        -scaledSize.y / 2
+      );
 
-      el.style.transform = getTransform();
+      updateTransformStyle();
     },
-    [workspaceRef, getTransform, getCenter]
+    [workspaceRef, getTransform, getCenter, updateTransformStyle]
   );
 
   const onMouseUp = useCallback(() => {
@@ -291,47 +236,45 @@ function ItemContainer({ id, View, canResize }: Props) {
     document.removeEventListener("mousemove", onResizerMouseMove);
     document.removeEventListener("mousemove", onRotatorMouseMove);
 
-    size.current.x *= scale.current.x;
-    size.current.y *= scale.current.y;
-    scale.current.x = 1;
-    scale.current.y = 1;
-    scaleMatrix.current = new DOMMatrix();
-    scaleMatrix.current.scaleSelf(scale.current.x, scale.current.y);
+    const center = getCenter();
+    const scaledSize = scaleMatrix.current.transformPoint(
+      new DOMPoint(size.current.x, size.current.y)
+    );
 
-    if (ref.current) {
-      ref.current.style.width = `${size.current.x}px`;
-      ref.current.style.height = `${size.current.y}px`;
-      ref.current.style.transform = getTransform();
-    }
-  }, [onMouseMove, onResizerMouseMove, onRotatorMouseMove]);
+    translationMatrix.current = new DOMMatrix().translateSelf(
+      center.x - scaledSize.x / 2,
+      center.y - scaledSize.y / 2
+    );
 
-  const onKeyDown = useCallback(
-    (event: KeyboardEvent) => {
-      console.log(event.key);
+    rotationMatrix.current = new DOMMatrix()
+      .translateSelf(scaledSize.x / 2, scaledSize.y / 2)
+      .rotateSelf(0, 0, rotation.current)
+      .translateSelf(-scaledSize.x / 2, -scaledSize.y / 2);
 
-      if (event.key === "ArrowLeft") {
-        rotation.current -= 5;
-      } else if (event.key === "ArrowRight") {
-        rotation.current += 5;
-      } else if (event.key === "+") {
-        scale.current.x += 0.5;
-      } else if (event.key === "-") {
-        scale.current.x -= 0.5;
-      }
-      ref.current!.style.transform = getTransform();
-    },
-    [getTransform]
-  );
+    updateTransformStyle();
+  }, [
+    onMouseMove,
+    onResizerMouseMove,
+    onRotatorMouseMove,
+    updateTransformStyle,
+  ]);
 
   useEffect(() => {
     document.addEventListener("mouseup", onMouseUp);
-    document.addEventListener("keydown", onKeyDown);
 
     return () => {
       document.removeEventListener("mouseup", onMouseUp);
-      document.removeEventListener("keydown", onKeyDown);
     };
-  }, [onMouseUp, onKeyDown]);
+  }, [onMouseUp]);
+
+  useEffect(() => {
+    if (innerRef.current && size.current.x === 0) {
+      size.current.x = innerRef.current.clientWidth;
+      size.current.y = innerRef.current.clientHeight;
+
+      updateTransformStyle();
+    }
+  }, [innerRef.current, updateTransformStyle]);
 
   const onResizerMouseDown = useCallback(
     (event: React.MouseEvent) => {
@@ -360,15 +303,7 @@ function ItemContainer({ id, View, canResize }: Props) {
 
   return (
     <div
-      ref={ref}
-      id={item.id}
-      className={cn(
-        "workspace__stage-item",
-        selected && "workspace__stage-item--selected"
-      )}
-      style={{
-        transform: getTransform(),
-      }}
+      className="workspace__stage-item"
       draggable={false}
       onMouseDown={(event) => {
         if (event.button === 0) {
@@ -382,22 +317,38 @@ function ItemContainer({ id, View, canResize }: Props) {
         }
       }}
     >
-      <View item={item} selected={selected} />
+      <div
+        ref={innerRef}
+        id={item.id}
+        className={cn(
+          "workspace__stage-item__inner",
+          canResize && "workspace__stage-item__inner--absolute"
+        )}
+        style={{ transform: getTransform().toString() }}
+        draggable={false}
+      >
+        <View item={item} selected={selected} />
+      </div>
 
-      {selected && (
-        <div
-          onMouseDown={onRotatorMouseDown}
-          draggable={false}
-          className="workspace__stage-item__anchor workspace__stage-item__anchor-rotate"
-        ></div>
-      )}
+      <div
+        ref={selectionRef}
+        draggable={false}
+        className={cn(
+          "workspace__stage-item__selection",
+          selected && "workspace__stage-item--selected"
+        )}
+      >
+        {selected && (
+          <div
+            onMouseDown={onRotatorMouseDown}
+            draggable={false}
+            className="workspace__stage-item__anchor workspace__stage-item__anchor-rotate"
+          ></div>
+        )}
 
-      {selected &&
-        canResize &&
-        ["l", "t", "r", "b"].map(
-          (
-            direction // "rb" "lb"
-          ) => (
+        {selected &&
+          canResize &&
+          [/*"l", "t",*/ "r", "b", "rb"].map((direction) => (
             <div
               key={direction}
               draggable={false}
@@ -405,8 +356,8 @@ function ItemContainer({ id, View, canResize }: Props) {
               onMouseDown={onResizerMouseDown}
               data-direction={direction}
             ></div>
-          )
-        )}
+          ))}
+      </div>
     </div>
   );
 }
