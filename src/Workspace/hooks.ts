@@ -8,6 +8,7 @@ import {
 } from "react";
 
 import { useWorkspaceStore } from "../store/workspace";
+import { getBoxedRelativeXY } from "../utils/events";
 
 export const WorkspaceContex = createContext<RefObject<HTMLDivElement> | null>(
   null
@@ -23,19 +24,6 @@ export const useWorkspaceRef = () => {
   return ref;
 };
 
-export function getRelativeXY(container: HTMLElement, event: MouseEvent) {
-  const { x: containerX, y: containerY } = container.getBoundingClientRect();
-  return [
-    Math.min(512, Math.max(0, event.clientX - containerX)),
-    Math.min(512, Math.max(0, event.clientY - containerY)),
-  ];
-}
-
-export function getRelativeXY2(container: HTMLElement, event: MouseEvent) {
-  const { x: containerX, y: containerY } = container.getBoundingClientRect();
-  return [event.clientX - containerX, event.clientY - containerY];
-}
-
 export function useWorkspaceSelectTool(
   workspaceRef: React.RefObject<HTMLDivElement | null>
 ) {
@@ -49,7 +37,7 @@ export function useWorkspaceSelectTool(
         return;
       }
 
-      const [moveX, moveY] = getRelativeXY(workspaceRef.current, event);
+      const [moveX, moveY] = getBoxedRelativeXY(workspaceRef.current, event);
       rect.current.width = moveX - rect.current.x;
       rect.current.height = moveY - rect.current.y;
 
@@ -77,7 +65,7 @@ export function useWorkspaceSelectTool(
 
       selectNone();
 
-      const [clickX, clickY] = getRelativeXY(workspaceRef.current, event);
+      const [clickX, clickY] = getBoxedRelativeXY(workspaceRef.current, event);
       rect.current.x = clickX;
       rect.current.y = clickY;
       rect.current.width = rect.current.height = 0;
