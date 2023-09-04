@@ -1,5 +1,4 @@
 :root {
-  height: 100%;
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
 
   color-scheme: light dark;
@@ -14,9 +13,8 @@
 }
 
 body, #root {
-  padding: 0;
+  padding: 1rem;
   margin: 0;
-  height: 100%;
 }
 
 #root {
