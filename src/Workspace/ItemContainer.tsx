@@ -6,7 +6,8 @@ import {
   useWorkspaceItem,
   useWorkspaceStore,
 } from "../store/workspace";
-import { ItemComponentInterface } from "./types";
+// import { useTransformStore } from "../store/transforms";
+import { ImperativeTransformEvent, ItemComponentInterface } from "./types";
 import { useWorkspaceRef } from "./hooks";
 import { degToRad, distance, radToDeg } from "../utils/math";
 import { getRelativeXY } from "../utils/events";
@@ -64,6 +65,15 @@ function ItemContainer({ id, View, canResize }: Props) {
     );
   }, [getTransform]);
 
+  const recalcRotation = useCallback(() => {
+    const scaledSize = getItemSize();
+
+    rotationMatrix.current = new DOMMatrix()
+      .translateSelf(scaledSize.x / 2, scaledSize.y / 2)
+      .rotateSelf(0, 0, rotation.current)
+      .translateSelf(-scaledSize.x / 2, -scaledSize.y / 2);
+  }, [getItemSize]);
+
   const updateTransformStyle = useCallback(() => {
     const transform = getTransform();
 
@@ -77,8 +87,21 @@ function ItemContainer({ id, View, canResize }: Props) {
         .multiplySelf(scaleMatrix.current.inverse());
 
       const scaledSize = getItemSize();
-      selectionRef.current.style.width = `${scaledSize.x}px`;
-      selectionRef.current.style.height = `${scaledSize.y}px`;
+
+      if (scaledSize.x < 0) {
+        selectionRef.current.style.width = `${Math.abs(scaledSize.x)}px`;
+        unscaledTransform.scaleSelf(-1, 1);
+      } else {
+        selectionRef.current.style.width = `${scaledSize.x}px`;
+      }
+
+      if (scaledSize.y < 0) {
+        selectionRef.current.style.height = `${Math.abs(scaledSize.y)}px`;
+        unscaledTransform.scaleSelf(1, -1);
+      } else {
+        selectionRef.current.style.height = `${scaledSize.y}px`;
+      }
+
       selectionRef.current.style.transform = unscaledTransform.toString();
     }
 
@@ -100,7 +123,7 @@ function ItemContainer({ id, View, canResize }: Props) {
     //     top: `${origin.y}px`,
     //   }
     // );
-  }, [getTransform, canResize]);
+  }, [getTransform, getItemSize]);
 
   // Move current item.
   const onMouseMove = useCallback(
@@ -142,7 +165,7 @@ function ItemContainer({ id, View, canResize }: Props) {
 
       updateTransformStyle();
     },
-    [getTransform, workspaceRef, getCenter, updateTransformStyle]
+    [workspaceRef, updateTransformStyle, getOrigin]
   );
 
   // Rotate current item.
@@ -153,24 +176,20 @@ function ItemContainer({ id, View, canResize }: Props) {
       }
 
       const center = getCenter();
-
       const mouse = getRelativeXY(workspaceRef.current, event);
-      const scaledSize = scaleMatrix.current.transformPoint(
-        new DOMPoint(originalSize.current.x, originalSize.current.y)
-      );
 
       rotation.current = radToDeg(
-        Math.atan2(mouse.y - center.y, mouse.y - center.x)
+        Math.atan2(mouse.y - center.y, mouse.x - center.x)
       );
 
-      rotationMatrix.current = new DOMMatrix()
-        .translateSelf(scaledSize.x / 2, scaledSize.y / 2)
-        .rotateSelf(0, 0, rotation.current)
-        .translateSelf(-scaledSize.x / 2, -scaledSize.y / 2);
+      if (scale.current.x < 0) {
+        rotation.current -= 180;
+      }
 
+      recalcRotation();
       updateTransformStyle();
     },
-    [workspaceRef, getTransform, getCenter, updateTransformStyle]
+    [workspaceRef, getCenter, updateTransformStyle, recalcRotation]
   );
 
   const onMouseUp = useCallback(() => {
@@ -179,26 +198,23 @@ function ItemContainer({ id, View, canResize }: Props) {
     document.removeEventListener("mousemove", onRotatorMouseMove);
 
     const center = getCenter();
-    const scaledSize = scaleMatrix.current.transformPoint(
-      new DOMPoint(originalSize.current.x, originalSize.current.y)
-    );
+    const scaledSize = getItemSize();
 
     translationMatrix.current = new DOMMatrix().translateSelf(
       center.x - scaledSize.x / 2,
       center.y - scaledSize.y / 2
     );
 
-    rotationMatrix.current = new DOMMatrix()
-      .translateSelf(scaledSize.x / 2, scaledSize.y / 2)
-      .rotateSelf(0, 0, rotation.current)
-      .translateSelf(-scaledSize.x / 2, -scaledSize.y / 2);
-
+    recalcRotation();
     updateTransformStyle();
   }, [
     onMouseMove,
     onResizerMouseMove,
     onRotatorMouseMove,
     updateTransformStyle,
+    getCenter,
+    getItemSize,
+    recalcRotation,
   ]);
 
   useEffect(() => {
@@ -206,8 +222,48 @@ function ItemContainer({ id, View, canResize }: Props) {
 
     return () => {
       document.removeEventListener("mouseup", onMouseUp);
+
+      document.removeEventListener("mousemove", onMouseMove);
+      document.removeEventListener("mousemove", onResizerMouseMove);
+      document.removeEventListener("mousemove", onRotatorMouseMove);
     };
-  }, [onMouseUp]);
+  }, [onMouseUp, onMouseMove, onResizerMouseMove, onRotatorMouseMove]);
+
+  const listenCommands = useCallback(
+    (event: ImperativeTransformEvent) => {
+      const { command } = event.detail;
+
+      switch (command) {
+        case "flipX":
+          scaleMatrix.current.scaleSelf(-1, 1);
+          scale.current.x *= -1;
+          break;
+        case "flipY":
+          scaleMatrix.current.scaleSelf(1, -1);
+          scale.current.y *= -1;
+          break;
+        case "+rotateZ":
+          rotation.current += 90;
+          break;
+        case "-rotateZ":
+          rotation.current -= 90;
+          break;
+        case "rotateZ=0":
+          rotation.current = 0;
+          break;
+        case "originalScale":
+          scaleMatrix.current = new DOMMatrix().scaleSelf(1, 1);
+          scale.current.x = scale.current.y = 1;
+          break;
+        default:
+          return;
+      }
+
+      recalcRotation();
+      updateTransformStyle();
+    },
+    [updateTransformStyle, recalcRotation]
+  );
 
   useEffect(() => {
     const resizeObserver = new ResizeObserver((entries) => {
@@ -218,14 +274,18 @@ function ItemContainer({ id, View, canResize }: Props) {
       updateTransformStyle();
     });
 
-    if (innerRef.current) {
-      resizeObserver.observe(innerRef.current);
+    const ref = innerRef.current;
+
+    if (ref) {
+      resizeObserver.observe(ref);
+      ref.addEventListener(ImperativeTransformEvent.type, listenCommands);
     }
 
     return () => {
       resizeObserver.disconnect();
+      ref?.removeEventListener(ImperativeTransformEvent.type, listenCommands);
     };
-  }, [updateTransformStyle]);
+  }, [updateTransformStyle, listenCommands]);
 
   const onResizerMouseDown = (event: React.MouseEvent) => {
     event.stopPropagation();

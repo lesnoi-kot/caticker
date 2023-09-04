@@ -1,20 +1,38 @@
 import { useRef } from "react";
 
 import {
-  WorkspaceItem,
-  WorkspaceItemType,
   makePictureItem,
   makeTextItem,
+  makeFigureItem,
   useWorkspaceStore,
+  FigureType,
+  useWorkspaceItems,
+  WorkspaceItemType,
+  WorkspaceText,
+  WorkspaceFigure,
 } from "../store/workspace";
+import { renderSticker } from "./renderer";
+import TextEdit from "./TextEdit";
+
 import "./Toolbar.css";
+import { CommandType, ImperativeTransformEvent } from "../Workspace/types";
+import FigureEdit from "./FigureEdit";
 
 export default function Toolbar() {
+  return (
+    <div className="toolbar">
+      <ItemMenu />
+      <MainMenu />
+    </div>
+  );
+}
+
+function MainMenu() {
   const store = useWorkspaceStore();
   const fileRef = useRef<HTMLInputElement>(null);
 
   return (
-    <div className="toolbar">
+    <div className="toolbar__main-menu">
       <label
         htmlFor="picture"
         onClick={() => {
@@ -31,7 +49,9 @@ export default function Toolbar() {
             const file = event.target.files?.[0];
 
             if (file) {
-              store.upsert(makePictureItem(file));
+              const pictureItem = makePictureItem(file);
+              store.upsert(pictureItem);
+              store.selectOne(pictureItem.id);
             }
           }}
           hidden
@@ -40,66 +60,126 @@ export default function Toolbar() {
       </label>
       <button
         onClick={() => {
-          store.upsert(makeTextItem());
+          const textItem = makeTextItem();
+          store.upsert(textItem);
+          store.selectOne(textItem.id);
         }}
       >
         Добавить текст
       </button>
       <button
         onClick={() => {
+          const figureItem = makeFigureItem(FigureType.Rect);
+          store.upsert(figureItem);
+          store.selectOne(figureItem.id);
+        }}
+      >
+        Добавить прямоугольник
+      </button>
+      <button
+        onClick={() => {
+          const figureItem = makeFigureItem(FigureType.Circle);
+          store.upsert(figureItem);
+          store.selectOne(figureItem.id);
+        }}
+      >
+        Добавить кружок
+      </button>
+      <button
+        onClick={() => {
           renderSticker({
             width: 512,
             height: 512,
-            workspaceItems: Object.values(store.sprites),
+            workspaceItems: Object.values(store.stageItems),
             imageType: "image/png",
           });
         }}
       >
         Скачать
       </button>
-      <canvas id="canvas" hidden></canvas>
     </div>
   );
 }
 
-type RenderStickerArguments = {
-  width: number;
-  height: number;
-  workspaceItems: WorkspaceItem[];
-  imageType: string;
-};
+function ItemMenu() {
+  const selectedItemIds = Array.from(
+    useWorkspaceStore((store) => store.selectedItems)
+  );
+  const selectedItems = useWorkspaceItems(selectedItemIds);
+  const removeMultiple = useWorkspaceStore((store) => store.removeMultiple);
 
-async function renderSticker(args: RenderStickerArguments) {
-  const { width, height, workspaceItems, imageType } = args;
+  if (selectedItems.length === 0) {
+    return null;
+  }
 
-  const canvas = new OffscreenCanvas(width, height);
-  const ctx = canvas.getContext("2d")!;
-  ctx.fillStyle = "transparent";
-  ctx.fillRect(0, 0, 512, 512);
+  const oneSelected = selectedItems.length === 1;
+  const [firstSelected] = selectedItems;
 
-  workspaceItems.forEach((sprite) => {
-    if (sprite.type === WorkspaceItemType.Picture) {
-      const img = document.getElementById(sprite.id) as HTMLImageElement;
+  const dispatchToContainers = (command: CommandType) => {
+    selectedItemIds.forEach((id) => {
+      const event = new ImperativeTransformEvent(command);
+      document.getElementById(id)!.dispatchEvent(event);
+    });
+  };
 
-      if (img) {
-        ctx.drawImage(img, img.offsetLeft, img.offsetTop);
-      }
-    } else if (sprite.type === WorkspaceItemType.Text) {
-      const textEl = document.getElementById(sprite.id) as HTMLDivElement;
+  return (
+    <div className="toolbar__transform-menus">
+      <div className="toolbar__transform-menu">
+        <button
+          onClick={() => {
+            dispatchToContainers("-rotateZ");
+          }}
+        >
+          90° ↶
+        </button>
 
-      if (textEl) {
-        ctx.fillStyle = "black";
-        ctx.font = window.getComputedStyle(textEl).font;
-        ctx.textBaseline = "top";
-        ctx.fillText(
-          textEl.textContent ?? "",
-          textEl.offsetLeft,
-          textEl.offsetTop
-        );
-      }
-    }
-  });
+        <button
+          onClick={() => {
+            dispatchToContainers("rotateZ=0");
+          }}
+        >
+          0°
+        </button>
 
-  const blob = await canvas.convertToBlob({ type: imageType });
-  window.open(URL.createObjectURL(blob), "_blank");
+        <button
+          onClick={() => {
+            dispatchToContainers("+rotateZ");
+          }}
+        >
+          90° ↷
+        </button>
+
+        <button
+          onClick={() => {
+            dispatchToContainers("originalScale");
+          }}
+        >
+          Оригинальный масштаб
+        </button>
+
+        <button
+          onClick={() => {
+            //
+          }}
+        >
+          Скопировать
+        </button>
+
+        <button
+          onClick={() => {
+            removeMultiple(selectedItemIds);
+          }}
+        >
+          Удалить
+        </button>
+      </div>
+
+      {oneSelected && firstSelected.type === WorkspaceItemType.Text && (
+        <TextEdit item={firstSelected as WorkspaceText} />
+      )}
+      {oneSelected && firstSelected.type === WorkspaceItemType.Figure && (
+        <FigureEdit item={firstSelected as WorkspaceFigure} />
+      )}
+    </div>
+  );
 }

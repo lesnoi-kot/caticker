@@ -14,6 +14,11 @@ export type BaseWorkspaceItem = { id: string; type: WorkspaceItemType };
 
 export type WorkspaceText = BaseWorkspaceItem & {
   type: WorkspaceItemType.Text;
+  color: string;
+  fontFamily: string;
+  fontSize: number;
+  strokeColor: string | null;
+  strokeWidth: number;
 };
 
 export type WorkspacePicture = BaseWorkspaceItem & {
@@ -21,31 +26,45 @@ export type WorkspacePicture = BaseWorkspaceItem & {
   file: File;
 };
 
+export enum FigureType {
+  Rect,
+  Circle,
+}
+
 export type WorkspaceFigure = BaseWorkspaceItem & {
   type: WorkspaceItemType.Figure;
+  figure: FigureType;
+  color: string;
 };
 
-export const makePictureItem = (file: File) => ({
+export const makePictureItem = (file: File): WorkspacePicture => ({
   id: nanoid(),
   type: WorkspaceItemType.Picture,
   file,
 });
 
-export const makeTextItem = () => ({
+export const makeTextItem = (): WorkspaceText => ({
   id: nanoid(),
   type: WorkspaceItemType.Text,
+  color: "black",
+  fontFamily: "Inter, system-ui, Avenir, Helvetica, Arial, sans-serif",
+  fontSize: 32,
+  strokeColor: null,
+  strokeWidth: 0,
 });
 
-export const makeFigureItem = () => ({
+export const makeFigureItem = (figure: FigureType): WorkspaceFigure => ({
   id: nanoid(),
   type: WorkspaceItemType.Figure,
+  figure,
+  color: "teal",
 });
 
 export const useWorkspaceStore = createWithEqualityFn(
   immer(
     combine(
       {
-        stageItems: {} as Record<string, BaseWorkspaceItem>,
+        stageItems: Object.create(null) as Record<string, BaseWorkspaceItem>,
         selectedItems: new Set<string>(),
       },
       (set) => ({
@@ -58,6 +77,7 @@ export const useWorkspaceStore = createWithEqualityFn(
         remove: (id: string) => {
           set((state) => {
             delete state.stageItems[id];
+            state.selectedItems.delete(id);
           });
         },
 
@@ -71,7 +91,7 @@ export const useWorkspaceStore = createWithEqualityFn(
         },
 
         removeAll: () => {
-          set({ stageItems: {} });
+          set({ stageItems: Object.create(null) });
         },
 
         selectOne: (id: string) => {
@@ -103,6 +123,11 @@ export const useWorkspaceItemIds = () =>
 
 export const useWorkspaceItem = (id: string) =>
   useWorkspaceStore((state) => state.stageItems[id]);
+
+export const useWorkspaceItems = (ids: string[]) =>
+  useWorkspaceStore((state) =>
+    ids.map((id) => state.stageItems[id]).filter(Boolean)
+  );
 
 export const useIsItemSelected = (id: string) =>
   useWorkspaceStore((state) => state.selectedItems.has(id));

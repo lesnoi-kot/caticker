@@ -5,12 +5,14 @@ import {
   useWorkspaceItem,
   WorkspaceItemType,
 } from "../store/workspace";
-import { useWorkspaceSelectTool } from "./hooks";
+import { WorkspaceContex } from "./hooks";
 
 import Picture from "./Picture";
 import Text from "./Text";
 import ItemContainer from "./ItemContainer";
 import KeyboardHandler from "./KeyboardHandler";
+import Figure from "./Figure";
+import AreaSelector from "./AreaSelector";
 
 import "./Workspace.css";
 
@@ -28,6 +30,10 @@ export default function Workspace() {
           className="workspace__result-selector"
         />
         <Items />
+        <WorkspaceContex.Provider value={workspaceRef}>
+          <AreaSelector />
+          <Items />
+        </WorkspaceContex.Provider>
       </div>
     </div>
   );
@@ -47,6 +53,17 @@ function Items() {
 
 function SwitchItem({ id }: { id: string }) {
   const item = useWorkspaceItem(id);
-  const View = item.type === WorkspaceItemType.Picture ? Picture : Text;
-  return <ItemContainer id={id} View={View} />;
+
+  switch (item.type) {
+    case WorkspaceItemType.Picture:
+      return <ItemContainer id={id} View={Picture} canResize />;
+    case WorkspaceItemType.Text:
+      return <ItemContainer id={id} View={Text} canResize />;
+    case WorkspaceItemType.Figure:
+      return <ItemContainer id={id} View={Figure} canResize />;
+    default:
+      break;
+  }
+
+  return null;
 }
