@@ -1,4 +1,5 @@
 import { useRef } from "react";
+import { ChromePicker } from "react-color";
 
 import {
   makePictureItem,
@@ -11,12 +12,12 @@ import {
   WorkspaceText,
   WorkspaceFigure,
 } from "../store/workspace";
-import { renderSticker } from "./renderer";
+import { CommandType, ImperativeTransformEvent } from "../Workspace/types";
 import TextEdit from "./TextEdit";
+import FigureEdit from "./FigureEdit";
 
 import "./Toolbar.css";
-import { CommandType, ImperativeTransformEvent } from "../Workspace/types";
-import FigureEdit from "./FigureEdit";
+import RenderPanel from "./RenderPanel";
 
 export default function Toolbar() {
   return (
@@ -56,7 +57,7 @@ function MainMenu() {
           }}
           hidden
         />
-        <button>Загрузить картинку</button>
+        <button>Добавить картинку</button>
       </label>
       <button
         onClick={() => {
@@ -85,18 +86,20 @@ function MainMenu() {
       >
         Добавить кружок
       </button>
-      <button
-        onClick={() => {
-          renderSticker({
-            width: 512,
-            height: 512,
-            workspaceItems: Object.values(store.stageItems),
-            imageType: "image/png",
-          });
-        }}
-      >
-        Скачать
-      </button>
+
+      <div>
+        <p>Фоновый цвет</p>
+        <ChromePicker
+          color={store.settings.stageColor}
+          onChange={(color) => {
+            store.modifySettings({
+              stageColor: color.hex,
+            });
+          }}
+        />
+      </div>
+
+      <RenderPanel />
     </div>
   );
 }
@@ -122,15 +125,29 @@ function ItemMenu() {
     });
   };
 
+  const changeOrder = (direction: "up" | "down") => {
+    selectedItemIds.forEach((id) => {
+      const el = document.getElementById(`container-${id}`);
+
+      if (el) {
+        if (direction === "down") {
+          el.parentElement?.prepend(el);
+        } else {
+          el.parentElement?.append(el);
+        }
+      }
+    });
+  };
+
   return (
-    <div className="toolbar__transform-menus">
+    <div className="toolbar__menus">
       <div className="toolbar__transform-menu">
         <button
           onClick={() => {
             dispatchToContainers("-rotateZ");
           }}
         >
-          90° ↶
+          ↶ 90°
         </button>
 
         <button
@@ -155,6 +172,22 @@ function ItemMenu() {
           }}
         >
           Оригинальный масштаб
+        </button>
+
+        <button
+          onClick={() => {
+            changeOrder("up");
+          }}
+        >
+          Вверх ↥
+        </button>
+
+        <button
+          onClick={() => {
+            changeOrder("down");
+          }}
+        >
+          Вниз ↧
         </button>
 
         <button

@@ -11,14 +11,15 @@ type RenderStickerArguments = {
   height: number;
   workspaceItems: BaseWorkspaceItem[];
   imageType: string;
+  backgroundColor?: string;
 };
 
 export async function renderSticker(args: RenderStickerArguments) {
-  const { width, height, workspaceItems, imageType } = args;
+  const { width, height, workspaceItems, imageType, backgroundColor } = args;
 
   const canvas = new OffscreenCanvas(width, height);
   const ctx = canvas.getContext("2d")!;
-  ctx.fillStyle = "transparent";
+  ctx.fillStyle = backgroundColor ?? "transparent";
   ctx.fillRect(0, 0, 512, 512);
 
   workspaceItems.forEach((sprite) => {

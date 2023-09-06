@@ -1,5 +1,5 @@
 :root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: system-ui, Helvetica, Arial, sans-serif;
 
   color-scheme: light dark;
   color: pink;
@@ -29,7 +29,7 @@ button {
   font-size: 1.1rem;
 
   background: hsl(8, 100%, 61%);
-  padding: .8rem;
+  padding: .6rem;
   cursor: pointer;
   color: white;
   font-weight: bold;

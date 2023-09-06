@@ -7,10 +7,12 @@
 
 .toolbar__main-menu {
   display: flex;
+  flex-wrap: wrap;
   gap: 1rem;
+  align-items: flex-start;
 }
 
-.toolbar__transform-menus {
+.toolbar__menus {
   display: flex;
   gap: 1rem;
   flex-direction: column;
@@ -25,5 +27,14 @@
 .toolbar__text-menu {
   display: flex;
   align-items: flex-start;
+  flex-wrap: wrap;
   gap: 1rem;
+}
+
+.toolbar p {
+  font-size: 1.2rem;
+  font-weight: bolder;
+  margin-top: 0;
+  margin-bottom: 1rem;
+  color: hotpink;
 }

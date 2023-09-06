@@ -1,4 +1,4 @@
-import { SketchPicker } from "react-color";
+import { ChromePicker } from "react-color";
 
 import { WorkspaceFigure, useWorkspaceStore } from "../store/workspace";
 
@@ -9,14 +9,17 @@ export default function FigureEdit({ item }: { item: WorkspaceFigure }) {
 
   return (
     <div className="toolbar__figure-menu">
-      <SketchPicker
-        color={item.color}
-        onChange={(color) => {
-          const updatedItem = { ...item };
-          updatedItem.color = color.hex;
-          upsert(updatedItem);
-        }}
-      />
+      <div>
+        <p>Цвет фигуры</p>
+        <ChromePicker
+          color={item.color}
+          onChange={(color) => {
+            const updatedItem = { ...item };
+            updatedItem.color = color.hex;
+            upsert(updatedItem);
+          }}
+        />
+      </div>
     </div>
   );
 }
