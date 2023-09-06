@@ -20,7 +20,7 @@ export async function renderSticker(args: RenderStickerArguments) {
   const canvas = new OffscreenCanvas(width, height);
   const ctx = canvas.getContext("2d")!;
   ctx.fillStyle = backgroundColor ?? "transparent";
-  ctx.fillRect(0, 0, 512, 512);
+  ctx.fillRect(0, 0, width, height);
 
   workspaceItems.forEach((sprite) => {
     const transformContainer = document.getElementById(

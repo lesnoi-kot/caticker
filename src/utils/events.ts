@@ -1,9 +1,15 @@
-export function getBoxedRelativeXY(container: HTMLElement, event: MouseEvent) {
+export function getBoxedRelativeXY(
+  container: HTMLElement,
+  event: MouseEvent,
+  maxX: number,
+  maxY: number
+) {
   const { x: containerX, y: containerY } = container.getBoundingClientRect();
-  return [
-    Math.min(512, Math.max(0, event.clientX - containerX)),
-    Math.min(512, Math.max(0, event.clientY - containerY)),
-  ];
+
+  return new DOMPoint(
+    Math.min(maxX, Math.max(0, event.clientX - containerX)),
+    Math.min(maxY, Math.max(0, event.clientY - containerY))
+  );
 }
 
 export function getRelativeXY(

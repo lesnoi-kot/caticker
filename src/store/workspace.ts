@@ -66,6 +66,8 @@ type StageSettings = {
   stageColor: string;
 };
 
+export const STICKER_MAX_SIZE = 512;
+
 export const useWorkspaceStore = createWithEqualityFn(
   immer(
     combine(
@@ -74,8 +76,8 @@ export const useWorkspaceStore = createWithEqualityFn(
         selectedItems: new Set<string>(),
 
         settings: {
-          stageWidth: 512,
-          stageHeight: 512,
+          stageWidth: STICKER_MAX_SIZE,
+          stageHeight: STICKER_MAX_SIZE,
           stageColor: "white",
         } as StageSettings,
       },
@@ -170,5 +172,5 @@ export const useWorkspaceItems = (ids: string[]) =>
 export const useIsItemSelected = (id: string) =>
   useWorkspaceStore((state) => state.selectedItems.has(id));
 
-export const useIsSelectedItemIds = () =>
+export const useSelectedItemIds = () =>
   useWorkspaceStore((state) => Array.from(state.selectedItems));

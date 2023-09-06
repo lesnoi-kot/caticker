@@ -9,6 +9,7 @@ function useWorkspaceSelectTool() {
   const workspaceRef = useWorkspaceRef();
   const selectNone = useWorkspaceStore((store) => store.selectNone);
   const selectMany = useWorkspaceStore((store) => store.selectMany);
+  const stageSettings = useWorkspaceStore((store) => store.settings);
   const ids = useWorkspaceItemIds();
   const selectorRef = useRef<HTMLDivElement>(null);
   const rect = useRef<DOMRect>(new DOMRect(0, 0, 0, 0));
@@ -19,10 +20,15 @@ function useWorkspaceSelectTool() {
         return;
       }
 
-      const [moveX, moveY] = getBoxedRelativeXY(workspaceRef.current, event);
+      const mouse = getBoxedRelativeXY(
+        workspaceRef.current,
+        event,
+        stageSettings.stageWidth,
+        stageSettings.stageHeight
+      );
       const { left, top, width, height } = rect.current;
-      rect.current.width = moveX - rect.current.x;
-      rect.current.height = moveY - rect.current.y;
+      rect.current.width = mouse.x - rect.current.x;
+      rect.current.height = mouse.y - rect.current.y;
 
       selectorRef.current.style.left = `${left}px`;
       selectorRef.current.style.top = `${top}px`;
@@ -75,7 +81,7 @@ function useWorkspaceSelectTool() {
 
       selectMany(selected);
     },
-    [workspaceRef, ids, selectMany]
+    [workspaceRef, ids, selectMany, stageSettings]
   );
 
   const onMouseDown = useCallback(
@@ -94,9 +100,14 @@ function useWorkspaceSelectTool() {
 
       selectNone();
 
-      const [clickX, clickY] = getBoxedRelativeXY(workspaceRef.current, event);
-      rect.current.x = clickX;
-      rect.current.y = clickY;
+      const mouse = getBoxedRelativeXY(
+        workspaceRef.current,
+        event,
+        stageSettings.stageWidth,
+        stageSettings.stageHeight
+      );
+      rect.current.x = mouse.x;
+      rect.current.y = mouse.y;
       rect.current.width = rect.current.height = 0;
 
       selectorRef.current.style.width = "0px";
@@ -107,7 +118,7 @@ function useWorkspaceSelectTool() {
 
       document.addEventListener("mousemove", onMouseMove);
     },
-    [workspaceRef, onMouseMove, selectNone]
+    [workspaceRef, onMouseMove, selectNone, stageSettings]
   );
 
   const onMouseUp = useCallback(() => {

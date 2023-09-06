@@ -5,6 +5,7 @@ import {
   useWorkspaceItem,
   WorkspaceItemType,
   useWorkspaceStore,
+  STICKER_MAX_SIZE,
 } from "../store/workspace";
 import { WorkspaceContex } from "./hooks";
 import { getRelativeXY } from "../utils/events";
@@ -68,8 +69,6 @@ export default function Workspace() {
 
   return (
     <div className="workspace">
-      <KeyboardHandler />
-
       <div
         ref={workspaceRef}
         className="workspace__result-window"
@@ -82,7 +81,7 @@ export default function Workspace() {
       >
         <div className="workspace__result-coords"></div>
 
-        {settings.stageHeight === 512 && (
+        {settings.stageHeight === STICKER_MAX_SIZE && (
           <div
             draggable={false}
             className={`workspace__stage-item__anchor workspace__stage-item__anchor--r`}
@@ -92,7 +91,7 @@ export default function Workspace() {
           ></div>
         )}
 
-        {settings.stageWidth === 512 && (
+        {settings.stageWidth === STICKER_MAX_SIZE && (
           <div
             draggable={false}
             className={`workspace__stage-item__anchor workspace__stage-item__anchor--b`}
@@ -105,6 +104,7 @@ export default function Workspace() {
         {/* <div className="workspace__result-dot"></div>
         <div className="workspace__result-origin"></div> */}
         <WorkspaceContex.Provider value={workspaceRef}>
+          <KeyboardHandler />
           <AreaSelector />
           <Items />
         </WorkspaceContex.Provider>
