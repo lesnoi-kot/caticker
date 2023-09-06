@@ -355,6 +355,18 @@
   resolved "https://registry.yarnpkg.com/@eslint/js/-/js-8.47.0.tgz#5478fdf443ff8158f9de171c704ae45308696c7d"
   integrity sha512-P6omY1zv5MItm93kLM8s2vr1HICJH8v0dvddDhysbIuZ+vcjOHg5Zbkf1mTkcmi2JA9oBG2anOkRnW8WJTS8Og==
 
+"@flatten-js/core@^1.4.3":
+  version "1.4.3"
+  resolved "https://registry.yarnpkg.com/@flatten-js/core/-/core-1.4.3.tgz#4c1ef15bcb42cefea5e34d94567e709d76df5f06"
+  integrity sha512-9wpxvDGHWgJ37xZFMXw5idNYBFj3+YJoDyaqRKiS93tWUmVAvX3DAnVPk3hVlk4SNqVnbWTJFyZXZ+42q38U4Q==
+  dependencies:
+    "@flatten-js/interval-tree" "^1.0.21"
+
+"@flatten-js/interval-tree@^1.0.21":
+  version "1.0.21"
+  resolved "https://registry.yarnpkg.com/@flatten-js/interval-tree/-/interval-tree-1.0.21.tgz#0ea917deb22d3c219e90ebc6d4a06e45abe4c2ef"
+  integrity sha512-TcxTNMkWBPqLicuFw9FViOZSVuug8MRRISUMDOCFzMI9FZ97BTjxiq8V168VifuEq9ERHhP2ltmGCovwS+KACw==
+
 "@humanwhocodes/config-array@^0.11.10":
   version "0.11.10"
   resolved "https://registry.yarnpkg.com/@humanwhocodes/config-array/-/config-array-0.11.10.tgz#5a3ffe32cc9306365fb3fd572596cd602d5e12d2"

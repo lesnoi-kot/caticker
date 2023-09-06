@@ -1,7 +1,7 @@
 {
   "name": "caticker",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "start": "vite",
@@ -11,6 +11,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@flatten-js/core": "^1.4.3",
     "@types/react-color": "^3.0.6",
     "classnames": "^2.3.2",
     "immer": "^10.0.2",
