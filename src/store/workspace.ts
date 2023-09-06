@@ -47,7 +47,7 @@ export const makeTextItem = (): WorkspaceText => ({
   id: nanoid(),
   type: WorkspaceItemType.Text,
   color: "black",
-  fontFamily: "Inter, system-ui, Avenir, Helvetica, Arial, sans-serif",
+  fontFamily: "system-ui",
   fontSize: 32,
   strokeColor: null,
   strokeWidth: 0,
@@ -60,12 +60,24 @@ export const makeFigureItem = (figure: FigureType): WorkspaceFigure => ({
   color: "teal",
 });
 
+type StageSettings = {
+  stageWidth: number;
+  stageHeight: number;
+  stageColor: string;
+};
+
 export const useWorkspaceStore = createWithEqualityFn(
   immer(
     combine(
       {
         stageItems: Object.create(null) as Record<string, BaseWorkspaceItem>,
         selectedItems: new Set<string>(),
+
+        settings: {
+          stageWidth: 512,
+          stageHeight: 512,
+          stageColor: "white",
+        } as StageSettings,
       },
       (set) => ({
         upsert: (item: BaseWorkspaceItem) => {
@@ -101,6 +113,16 @@ export const useWorkspaceStore = createWithEqualityFn(
           });
         },
 
+        selectMany: (ids: string[]) => {
+          set((state) => {
+            state.selectedItems.clear();
+
+            for (const id of ids) {
+              state.selectedItems.add(id);
+            }
+          });
+        },
+
         selectMore: (id: string) => {
           set((state) => {
             state.selectedItems.add(id);
@@ -110,6 +132,22 @@ export const useWorkspaceStore = createWithEqualityFn(
         selectNone: () => {
           set((state) => {
             state.selectedItems.clear();
+          });
+        },
+
+        selectAll: () => {
+          set((state) => {
+            state.selectedItems.clear();
+
+            Object.keys(state.stageItems).forEach((id) => {
+              state.selectedItems.add(id);
+            });
+          });
+        },
+
+        modifySettings: (settings: Partial<StageSettings>) => {
+          set((state) => {
+            Object.assign(state.settings, settings);
           });
         },
       })
