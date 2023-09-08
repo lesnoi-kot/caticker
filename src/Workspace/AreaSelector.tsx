@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useRef } from "react";
-import geometry from "@flatten-js/core";
 
 import { useWorkspaceItemIds, useWorkspaceStore } from "../store/workspace";
+import { useTransformStore } from "../store/transforms";
 import { getBoxedRelativeXY } from "../utils/events";
+import { fastIntersectionCheck, rectToPoly } from "../utils/math";
 import { useWorkspaceRef } from "./hooks";
 
 function useWorkspaceSelectTool() {
@@ -30,56 +31,38 @@ function useWorkspaceSelectTool() {
       rect.current.width = mouse.x - rect.current.x;
       rect.current.height = mouse.y - rect.current.y;
 
-      selectorRef.current.style.left = `${left}px`;
-      selectorRef.current.style.top = `${top}px`;
-      selectorRef.current.style.width = `${Math.abs(width)}px`;
-      selectorRef.current.style.height = `${Math.abs(height)}px`;
+      selectorRef.current.setAttribute(
+        "style",
+        `
+        display: block;
+        left: ${left}px;
+        top: ${top}px;
+        width: ${Math.abs(width)}px;
+        height: ${Math.abs(height)}px;
+      `
+      );
 
-      const selectionPoly = new geometry.Polygon([
-        geometry.point(left, top),
-        geometry.point(left + Math.abs(width), top),
-        geometry.point(left + Math.abs(width), top + Math.abs(height)),
-        geometry.point(left, top + Math.abs(height)),
-      ]);
-
-      if (
-        selectionPoly.isEmpty() ||
-        !selectionPoly.isValid() ||
-        selectionPoly.vertices.length !== 4
-      ) {
+      const selectionPoly = rectToPoly(rect.current);
+      if (selectionPoly.isEmpty()) {
         return;
       }
 
-      const selected = [] as string[];
+      const newlySelected = [] as string[];
+      const transformsState = useTransformStore.getState().items;
 
       ids.forEach((id) => {
-        const el = document.getElementById(id);
+        const targetPoly = transformsState[id]?.polygon;
 
-        if (el) {
-          const m = new DOMMatrix(el.style.transform);
-
-          const p1 = m.transformPoint(new DOMPoint(0, 0));
-          const p2 = m.transformPoint(new DOMPoint(100, 0));
-          const p3 = m.transformPoint(new DOMPoint(100, 100));
-          const p4 = m.transformPoint(new DOMPoint(0, 100));
-
-          const targetPoly = new geometry.Polygon([
-            geometry.point(p1.x, p1.y),
-            geometry.point(p2.x, p2.y),
-            geometry.point(p3.x, p3.y),
-            geometry.point(p4.x, p4.y),
-          ]);
-
-          if (
-            containsRect(selectionPoly, targetPoly) ||
-            selectionPoly.intersect(targetPoly).length > 0
-          ) {
-            selected.push(id);
-          }
+        if (
+          targetPoly &&
+          (fastIntersectionCheck(rect.current, targetPoly) ||
+            selectionPoly.intersect(targetPoly).length > 0)
+        ) {
+          newlySelected.push(id);
         }
       });
 
-      selectMany(selected);
+      selectMany(newlySelected);
     },
     [workspaceRef, ids, selectMany, stageSettings]
   );
@@ -110,12 +93,6 @@ function useWorkspaceSelectTool() {
       rect.current.y = mouse.y;
       rect.current.width = rect.current.height = 0;
 
-      selectorRef.current.style.width = "0px";
-      selectorRef.current.style.height = "0px";
-      selectorRef.current.style.left = `${rect.current.left}px`;
-      selectorRef.current.style.top = `${rect.current.top}px`;
-      selectorRef.current.style.display = "block";
-
       document.addEventListener("mousemove", onMouseMove);
     },
     [workspaceRef, onMouseMove, selectNone, stageSettings]
@@ -145,16 +122,4 @@ export default function AreaSelector() {
   return (
     <div ref={selectTool.selectorRef} className="workspace__result-selector" />
   );
-}
-
-function containsRect(rect: geometry.Polygon, item: geometry.Polygon): boolean {
-  const [p1, p2, p3, p4] = rect.vertices;
-
-  for (const v of item.vertices) {
-    if (v.x >= p1.x && v.y >= p1.y && v.x <= p3.x && v.y <= p3.y) {
-      return true;
-    }
-  }
-
-  return false;
 }

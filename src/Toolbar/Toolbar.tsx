@@ -12,12 +12,12 @@ import {
   WorkspaceText,
   WorkspaceFigure,
 } from "../store/workspace";
-import { CommandType, ImperativeTransformEvent } from "../Workspace/types";
 import TextEdit from "./TextEdit";
 import FigureEdit from "./FigureEdit";
 
 import "./Toolbar.css";
 import RenderPanel from "./RenderPanel";
+import { useTransformStore } from "../store/transforms";
 
 export default function Toolbar() {
   return (
@@ -110,6 +110,9 @@ function ItemMenu() {
   );
   const selectedItems = useWorkspaceItems(selectedItemIds);
   const removeMultiple = useWorkspaceStore((store) => store.removeMultiple);
+  const rotateAround = useTransformStore((store) => store.rotateAround);
+  const rotateToAround = useTransformStore((store) => store.rotateToAround);
+  const scaleTo = useTransformStore((store) => store.scaleTo);
 
   if (selectedItems.length === 0) {
     return null;
@@ -117,13 +120,6 @@ function ItemMenu() {
 
   const oneSelected = selectedItems.length === 1;
   const [firstSelected] = selectedItems;
-
-  const dispatchToContainers = (command: CommandType) => {
-    selectedItemIds.forEach((id) => {
-      const event = new ImperativeTransformEvent(command);
-      document.getElementById(id)!.dispatchEvent(event);
-    });
-  };
 
   const changeOrder = (direction: "up" | "down") => {
     selectedItemIds.forEach((id) => {
@@ -144,7 +140,9 @@ function ItemMenu() {
       <div className="toolbar__transform-menu">
         <button
           onClick={() => {
-            dispatchToContainers("-rotateZ");
+            selectedItemIds.forEach((id) => {
+              rotateAround(id, -90);
+            });
           }}
         >
           ↶ 90°
@@ -152,7 +150,9 @@ function ItemMenu() {
 
         <button
           onClick={() => {
-            dispatchToContainers("rotateZ=0");
+            selectedItemIds.forEach((id) => {
+              rotateToAround(id, 0);
+            });
           }}
         >
           0°
@@ -160,7 +160,9 @@ function ItemMenu() {
 
         <button
           onClick={() => {
-            dispatchToContainers("+rotateZ");
+            selectedItemIds.forEach((id) => {
+              rotateAround(id, 90);
+            });
           }}
         >
           90° ↷
@@ -168,7 +170,9 @@ function ItemMenu() {
 
         <button
           onClick={() => {
-            dispatchToContainers("originalScale");
+            selectedItemIds.forEach((id) => {
+              scaleTo(id, 1, 1);
+            });
           }}
         >
           Оригинальный масштаб

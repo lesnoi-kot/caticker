@@ -13,6 +13,7 @@ export enum WorkspaceItemType {
 export type BaseWorkspaceItem = { id: string; type: WorkspaceItemType };
 
 export type WorkspaceText = BaseWorkspaceItem & {
+  text: string;
   type: WorkspaceItemType.Text;
   color: string;
   fontFamily: string;
@@ -44,6 +45,7 @@ export const makePictureItem = (file: File): WorkspacePicture => ({
 });
 
 export const makeTextItem = (): WorkspaceText => ({
+  text: "",
   id: nanoid(),
   type: WorkspaceItemType.Text,
   color: "black",
@@ -81,8 +83,9 @@ export const useWorkspaceStore = createWithEqualityFn(
           stageColor: "white",
         } as StageSettings,
       },
+
       (set) => ({
-        upsert: (item: BaseWorkspaceItem) => {
+        upsert: <T extends BaseWorkspaceItem>(item: T) => {
           set((state) => {
             state.stageItems[item.id] = item;
           });
