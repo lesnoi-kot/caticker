@@ -150,6 +150,16 @@ export const useWorkspaceStore = createWithEqualityFn(
           });
         },
 
+        toggleSelect: (id: string) => {
+          set((state) => {
+            if (state.selectedItems.has(id)) {
+              state.selectedItems.delete(id);
+            } else {
+              state.selectedItems.add(id);
+            }
+          });
+        },
+
         modifySettings: (settings: Partial<StageSettings>) => {
           set((state) => {
             Object.assign(state.settings, settings);

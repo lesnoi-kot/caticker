@@ -1,20 +1,15 @@
-import { RefObject, createContext, useCallback, useContext } from "react";
+import {
+  RefObject,
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+} from "react";
 
 import { useTransformStore } from "../store/transforms";
-
-export const WorkspaceContex = createContext<RefObject<HTMLDivElement> | null>(
-  null
-);
-
-export const useWorkspaceRef = () => {
-  const ref = useContext(WorkspaceContex);
-
-  if (!ref) {
-    throw new Error("Workspace ref not provided");
-  }
-
-  return ref;
-};
+import { useWorkspaceStore } from "../store/workspace";
 
 export const useTransformActions = (itemId: string) => {
   const _translate = useTransformStore((store) => store.translate);
@@ -79,4 +74,83 @@ export const useTransformActions = (itemId: string) => {
     createGeometry,
     resize,
   };
+};
+
+type WorkspaceContexData = {
+  workspaceRef: RefObject<HTMLDivElement>;
+  onTransformContainerMouseDown: (itemId: string, event: MouseEvent) => void;
+};
+
+export const WorkspaceContex = createContext<WorkspaceContexData | null>(null);
+
+export const useWorkspaceRef = (): WorkspaceContexData => {
+  const ref = useContext(WorkspaceContex);
+
+  if (!ref) {
+    throw new Error("Workspace ref not provided");
+  }
+
+  return ref;
+};
+
+export const useCreateWorkspaceRef = () => {
+  const workspaceRef = useRef<HTMLDivElement>(null);
+  const selectOne = useWorkspaceStore((store) => store.selectOne);
+  const toggleSelect = useWorkspaceStore((store) => store.toggleSelect);
+  const translate = useTransformStore((store) => store.translate);
+  const holding = useRef(false);
+
+  const onMouseMove = useCallback(
+    (event: MouseEvent) => {
+      if (holding.current) {
+        Array.from(useWorkspaceStore.getState().selectedItems).forEach((id) => {
+          translate(id, event.movementX, event.movementY);
+        });
+      }
+    },
+    [translate]
+  );
+
+  const onMouseUp = useCallback(() => {
+    holding.current = false;
+  }, []);
+
+  useEffect(() => {
+    document.addEventListener("mousemove", onMouseMove);
+    document.addEventListener("mouseup", onMouseUp);
+
+    return () => {
+      document.removeEventListener("mousemove", onMouseMove);
+      document.removeEventListener("mouseup", onMouseUp);
+    };
+  }, [onMouseMove, onMouseUp]);
+
+  const onTransformContainerMouseDown = useCallback(
+    (targetId: string, event: MouseEvent) => {
+      if (event.button === 0) {
+        holding.current = true;
+
+        const alreadySelected = useWorkspaceStore
+          .getState()
+          .selectedItems.has(targetId);
+
+        if (event.ctrlKey) {
+          toggleSelect(targetId);
+        } else if (!alreadySelected) {
+          selectOne(targetId);
+        }
+      }
+    },
+    [selectOne, toggleSelect]
+  );
+
+  const handlers = useMemo(
+    () => ({
+      workspaceRef,
+      onTransformContainerMouseDown,
+    }),
+    [onTransformContainerMouseDown]
+  );
+
+  return handlers;
 };

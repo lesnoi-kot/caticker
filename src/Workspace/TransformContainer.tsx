@@ -1,38 +1,29 @@
-import { useCallback, useEffect, useRef } from "react";
+import { ReactNode, useCallback, useEffect, useRef } from "react";
 import cn from "classnames";
 
-import {
-  useIsItemSelected,
-  useWorkspaceItem,
-  useWorkspaceStore,
-} from "../store/workspace";
+import { useIsItemSelected } from "../store/workspace";
 import { useTransformStore } from "../store/transforms";
-import { ItemComponentInterface } from "./types";
 import { useTransformActions, useWorkspaceRef } from "./hooks";
 import { degToRad, distance, getOrigin, radToDeg } from "../utils/math";
 import { getRelativeXY } from "../utils/events";
 
 type Props = {
   id: string;
-  View: React.FC<ItemComponentInterface>;
   canResize?: boolean;
   canRotate?: boolean;
+  children: ReactNode;
 };
 
-function ItemContainer({ id, View, canResize }: Props) {
-  const workspaceRef = useWorkspaceRef();
+function TransformContainer({ id, children, canResize }: Props) {
+  const { workspaceRef, onTransformContainerMouseDown } = useWorkspaceRef();
+
   const innerRef = useRef<HTMLDivElement | null>(null);
   const selectionRef = useRef<HTMLDivElement>(null);
-
   const resizeDirection = useRef<string>("r");
 
-  const selectOne = useWorkspaceStore((store) => store.selectOne);
-  const selectMore = useWorkspaceStore((store) => store.selectMore);
   const isSelected = useIsItemSelected(id);
-  const item = useWorkspaceItem(id);
 
   const {
-    translate,
     translateTo,
     rotateToAround,
     scaleXTo,
@@ -95,14 +86,6 @@ function ItemContainer({ id, View, canResize }: Props) {
     }
   }, [getItemSize, getGeometry]);
 
-  // Move current item.
-  const onMouseMove = useCallback(
-    (event: MouseEvent) => {
-      translate(event.movementX, event.movementY);
-    },
-    [translate]
-  );
-
   // Resize current item.
   const onResizerMouseMove = useCallback(
     (event: MouseEvent) => {
@@ -159,7 +142,6 @@ function ItemContainer({ id, View, canResize }: Props) {
   );
 
   const onMouseUp = useCallback(() => {
-    document.removeEventListener("mousemove", onMouseMove);
     document.removeEventListener("mousemove", onResizerMouseMove);
     document.removeEventListener("mousemove", onRotatorMouseMove);
 
@@ -170,7 +152,6 @@ function ItemContainer({ id, View, canResize }: Props) {
     translateTo(center.x - scaledSize.x / 2, center.y - scaledSize.y / 2);
     rotateToAround(rotation, new DOMPoint(scaledSize.x / 2, scaledSize.y / 2));
   }, [
-    onMouseMove,
     onResizerMouseMove,
     onRotatorMouseMove,
     getCenter,
@@ -185,12 +166,10 @@ function ItemContainer({ id, View, canResize }: Props) {
 
     return () => {
       document.removeEventListener("mouseup", onMouseUp);
-
-      document.removeEventListener("mousemove", onMouseMove);
       document.removeEventListener("mousemove", onResizerMouseMove);
       document.removeEventListener("mousemove", onRotatorMouseMove);
     };
-  }, [onMouseUp, onMouseMove, onResizerMouseMove, onRotatorMouseMove]);
+  }, [onMouseUp, onResizerMouseMove, onRotatorMouseMove]);
 
   useEffect(() => {
     const resizeObserver = new ResizeObserver((entries) => {
@@ -229,31 +208,22 @@ function ItemContainer({ id, View, canResize }: Props) {
   return (
     <div
       className="workspace__stage-item"
-      id={`container-${item.id}`}
+      id={`container-${id}`}
       draggable={false}
       onMouseDown={(event) => {
-        if (event.button === 0) {
-          document.addEventListener("mousemove", onMouseMove);
-
-          if (event.ctrlKey) {
-            selectMore(id);
-            // } else if (selectedIds.length === 0) {
-          } else {
-            selectOne(id);
-          }
-        }
+        onTransformContainerMouseDown(id, event.nativeEvent);
       }}
     >
       <div
         ref={innerRef}
-        id={item.id}
+        id={id}
         className={cn(
           "workspace__stage-item__inner",
           canResize && "workspace__stage-item__inner--absolute"
         )}
         draggable={false}
       >
-        <View item={item} selected={isSelected} />
+        {children}
       </div>
 
       <div
@@ -295,4 +265,4 @@ function ItemContainer({ id, View, canResize }: Props) {
   );
 }
 
-export default ItemContainer;
+export default TransformContainer;

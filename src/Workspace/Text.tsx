@@ -5,23 +5,22 @@ import type { ItemComponentInterface } from "./types";
 
 type Props = ItemComponentInterface<WorkspaceText>;
 
-export default function Text(props: Props) {
-  const { item, selected } = props;
+export default function Text({ item }: Props) {
   const [editable, setEditable] = useState(true);
   const remove = useWorkspaceStore((store) => store.remove);
+  const upsert = useWorkspaceStore((store) => store.upsert);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (ref.current) {
       ref.current.focus();
-      ref.current.textContent = "Введи текст!";
     }
   }, []);
 
   return (
     <div
       ref={ref}
-      contentEditable={editable && selected}
+      contentEditable={editable}
       className="workspace__stage-text"
       draggable={false}
       style={{
@@ -34,6 +33,12 @@ export default function Text(props: Props) {
       onDoubleClick={() => {
         setEditable(true);
       }}
+      onChange={(e) => {
+        upsert({
+          ...item,
+          text: (e.target as HTMLDivElement).innerText,
+        });
+      }}
       onBlur={() => {
         setEditable(false);
 
@@ -41,6 +46,8 @@ export default function Text(props: Props) {
           remove(item.id);
         }
       }}
-    />
+    >
+      {item.text}
+    </div>
   );
 }

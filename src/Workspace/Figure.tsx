@@ -11,9 +11,7 @@ function Figure({ item }: ItemComponentInterface<WorkspaceFigure>) {
   return (
     <div
       className={classnameForFigure[item.figure] ?? ""}
-      style={{
-        backgroundColor: item.color,
-      }}
+      style={{ backgroundColor: item.color }}
       draggable={false}
     />
   );

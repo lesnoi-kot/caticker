@@ -1,8 +1,10 @@
+import { useTransformStore } from "../store/transforms";
 import {
   BaseWorkspaceItem,
   FigureType,
   WorkspaceFigure,
   WorkspaceItemType,
+  WorkspacePicture,
   WorkspaceText,
 } from "../store/workspace";
 
@@ -22,46 +24,35 @@ export async function renderSticker(args: RenderStickerArguments) {
   ctx.fillStyle = backgroundColor ?? "transparent";
   ctx.fillRect(0, 0, width, height);
 
-  workspaceItems.forEach((sprite) => {
-    const transformContainer = document.getElementById(
-      sprite.id
-    ) as HTMLDivElement;
+  const { items } = useTransformStore.getState();
 
-    if (!transformContainer) {
-      return;
-    }
+  for (const item of workspaceItems) {
+    const g = items[item.id];
 
-    const transform = new DOMMatrix(
-      window.getComputedStyle(transformContainer).transform
-    );
     ctx.save();
-    ctx.setTransform(transform);
+    ctx.setTransform(g.transform);
 
-    if (sprite.type === WorkspaceItemType.Picture) {
-      const img = transformContainer.querySelector("img") as HTMLImageElement;
+    if (item.type === WorkspaceItemType.Picture) {
+      const img = await window.createImageBitmap(
+        (item as WorkspacePicture).file
+      );
+      ctx.drawImage(img, 0, 0, img.width, img.height);
+    } else if (item.type === WorkspaceItemType.Text) {
+      const { text, color, strokeColor, strokeWidth, fontFamily, fontSize } =
+        item as WorkspaceText;
 
-      if (img) {
-        ctx.drawImage(img, 0, 0, img.width, img.height);
-      }
-    } else if (sprite.type === WorkspaceItemType.Text) {
-      const { color, strokeColor, strokeWidth, fontFamily, fontSize } =
-        sprite as WorkspaceText;
-      const textEl = transformContainer.querySelector("div") as HTMLDivElement;
+      ctx.strokeStyle = strokeColor ?? "black";
+      ctx.lineWidth = strokeWidth;
+      ctx.fillStyle = color;
+      ctx.font = `${fontSize}px ${fontFamily}`;
+      ctx.textBaseline = "top";
+      drawMultilineText(ctx, text);
+    } else if (item.type === WorkspaceItemType.Figure) {
+      ctx.fillStyle = (item as WorkspaceFigure).color;
 
-      if (textEl) {
-        ctx.strokeStyle = strokeColor ?? "black";
-        ctx.lineWidth = strokeWidth;
-        ctx.fillStyle = color;
-        ctx.font = `${fontSize}px ${fontFamily}`;
-        ctx.textBaseline = "top";
-        drawMultilineText(ctx, textEl.innerText ?? "");
-      }
-    } else if (sprite.type === WorkspaceItemType.Figure) {
-      ctx.fillStyle = (sprite as WorkspaceFigure).color;
-
-      if ((sprite as WorkspaceFigure).figure === FigureType.Rect) {
+      if ((item as WorkspaceFigure).figure === FigureType.Rect) {
         ctx.fillRect(0, 0, 100, 100);
-      } else if ((sprite as WorkspaceFigure).figure === FigureType.Circle) {
+      } else if ((item as WorkspaceFigure).figure === FigureType.Circle) {
         ctx.beginPath();
         ctx.ellipse(50, 50, 50, 50, 0, 0, 2 * Math.PI);
         ctx.fill();
@@ -69,7 +60,7 @@ export async function renderSticker(args: RenderStickerArguments) {
     }
 
     ctx.restore();
-  });
+  }
 
   const blob = await canvas.convertToBlob({ type: imageType });
   window.open(URL.createObjectURL(blob), "_blank");
@@ -83,6 +74,8 @@ function drawMultilineText(
 
   lines.forEach((line, i) => {
     ctx.fillText(line, 0, 32 * i);
-    ctx.strokeText(line, 0, 32 * i);
+    // if (ctx.lineWidth !== 0) {
+    //   ctx.strokeText(line, 0, 32 * i);
+    // }
   });
 }

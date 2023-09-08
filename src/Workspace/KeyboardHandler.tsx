@@ -19,7 +19,7 @@ const isSupportedPasteData = (format: string) =>
   supportedPasteFormats.includes(format);
 
 export default function KeyboardHandler() {
-  const workspaceRef = useWorkspaceRef();
+  const { workspaceRef } = useWorkspaceRef();
   const selectedItems = useSelectedItemIds();
 
   const { removeMultiple, selectNone, selectAll, upsert } = useWorkspaceStore(

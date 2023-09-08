@@ -7,7 +7,7 @@ import { fastIntersectionCheck, rectToPoly } from "../utils/math";
 import { useWorkspaceRef } from "./hooks";
 
 function useWorkspaceSelectTool() {
-  const workspaceRef = useWorkspaceRef();
+  const { workspaceRef } = useWorkspaceRef();
   const selectNone = useWorkspaceStore((store) => store.selectNone);
   const selectMany = useWorkspaceStore((store) => store.selectMany);
   const stageSettings = useWorkspaceStore((store) => store.settings);
