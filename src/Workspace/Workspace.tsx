@@ -53,19 +53,19 @@ function SwitchItem({ id }: { id: string }) {
   switch (item.type) {
     case WorkspaceItemType.Picture:
       return (
-        <TransformContainer id={id} canResize>
+        <TransformContainer id={id} canResize canRotate>
           <Picture item={item as WorkspacePicture} />
         </TransformContainer>
       );
     case WorkspaceItemType.Text:
       return (
-        <TransformContainer id={id} canResize>
+        <TransformContainer id={id} canResize canRotate>
           <Text item={item as WorkspaceText} />
         </TransformContainer>
       );
     case WorkspaceItemType.Figure:
       return (
-        <TransformContainer id={id} canResize>
+        <TransformContainer id={id} canResize canRotate>
           <Figure item={item as WorkspaceFigure} />
         </TransformContainer>
       );

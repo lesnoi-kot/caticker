@@ -4,7 +4,7 @@ import { createWithEqualityFn } from "zustand/traditional";
 import { shallow } from "zustand/shallow";
 import geometry from "@flatten-js/core";
 
-type ItemGeometryInfo = {
+export type ItemGeometryInfo = {
   translate: { x: number; y: number };
   scale: { x: number; y: number };
   rotationAround: DOMPoint;
@@ -23,6 +23,10 @@ export const useTransformStore = createWithEqualityFn(
 
       (set, get) => ({
         create: (itemId: string) => {
+          if (get().items[itemId]) {
+            return;
+          }
+
           set((state) => {
             state.items[itemId] = {
               unscaledWidth: 0,
@@ -34,6 +38,12 @@ export const useTransformStore = createWithEqualityFn(
               scale: { x: 1, y: 1 },
               polygon: new geometry.Polygon(),
             };
+          });
+        },
+
+        replace: (itemId: string, geometry: ItemGeometryInfo) => {
+          set((state) => {
+            state.items[itemId] = geometry;
           });
         },
 
@@ -138,3 +148,68 @@ export const useTransformStore = createWithEqualityFn(
   ),
   shallow
 );
+
+export const useTransformActions = () => {
+  const translate = useTransformStore((store) => store.translate);
+  const translateTo = useTransformStore((store) => store.translateTo);
+  const rotateToAround = useTransformStore((store) => store.rotateToAround);
+  const scaleTo = useTransformStore((store) => store.scaleTo);
+  const createGeometry = useTransformStore((store) => store.create);
+  const resize = useTransformStore((store) => store.resize);
+
+  return {
+    translate,
+    translateTo,
+    rotateToAround,
+    scaleTo,
+    createGeometry,
+    resize,
+  };
+};
+
+class TransformMutationRecorderReport {
+  modified: string[] = [];
+  deleted: string[] = [];
+  added: string[] = [];
+
+  isEmpty(): boolean {
+    return (
+      this.modified.length === 0 &&
+      this.deleted.length === 0 &&
+      this.added.length === 0
+    );
+  }
+}
+
+export class TransformMutationRecorder {
+  snapshot: ReturnType<typeof useTransformStore.getState>["items"];
+
+  constructor() {
+    this.snapshot = useTransformStore.getState().items;
+  }
+
+  start() {
+    this.snapshot = useTransformStore.getState().items;
+  }
+
+  compare(): TransformMutationRecorderReport {
+    const report = new TransformMutationRecorderReport();
+    const newState = useTransformStore.getState().items;
+
+    for (const id in this.snapshot) {
+      if (id in newState === false) {
+        report.deleted.push(id);
+      } else if (this.snapshot[id] !== newState[id]) {
+        report.modified.push(id);
+      }
+    }
+
+    for (const id in newState) {
+      if (id in this.snapshot === false) {
+        report.added.push(id);
+      }
+    }
+
+    return report;
+  }
+}

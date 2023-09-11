@@ -6,6 +6,7 @@ import {
   makePictureItem,
 } from "../store/workspace";
 import { useWorkspaceRef } from "./hooks";
+import { redoAction, undoAction, useUndoStore } from "../store/undo";
 
 const supportedPasteFormats = [
   "image/png",
@@ -21,6 +22,7 @@ const isSupportedPasteData = (format: string) =>
 export default function KeyboardHandler() {
   const { workspaceRef } = useWorkspaceRef();
   const selectedItems = useSelectedItemIds();
+  const pushHistory = useUndoStore((store) => store.push);
 
   const { removeMultiple, selectNone, selectAll, upsert } = useWorkspaceStore(
     (store) => ({
@@ -35,6 +37,12 @@ export default function KeyboardHandler() {
     (event: KeyboardEvent) => {
       switch (event.key.toLowerCase()) {
         case "delete":
+          pushHistory({
+            type: "delete",
+            items: selectedItems.map(
+              (id) => useWorkspaceStore.getState().stageItems[id]
+            ),
+          });
           removeMultiple(selectedItems);
           break;
         case "c":
@@ -45,6 +53,16 @@ export default function KeyboardHandler() {
         case "x":
           if (event.ctrlKey) {
             console.log("Cutting");
+          }
+          break;
+        case "z":
+          if (event.ctrlKey) {
+            undoAction();
+          }
+          break;
+        case "y":
+          if (event.ctrlKey) {
+            redoAction();
           }
           break;
         case "a":

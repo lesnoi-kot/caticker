@@ -2,10 +2,16 @@ import { ReactNode, useCallback, useEffect, useRef } from "react";
 import cn from "classnames";
 
 import { useIsItemSelected } from "../store/workspace";
-import { useTransformStore } from "../store/transforms";
-import { useTransformActions, useWorkspaceRef } from "./hooks";
-import { degToRad, distance, getOrigin, radToDeg } from "../utils/math";
-import { getRelativeXY } from "../utils/events";
+import { ItemGeometryInfo, useTransformStore } from "../store/transforms";
+import {
+  getGeometry,
+  getItemSize,
+  useItemTransformActions,
+  useWorkspaceRef,
+} from "./hooks";
+import ResizerDot from "./ResizerDot";
+import { RESIZER_TYPES } from "./types";
+import RotatorHandle from "./RotatorHandle";
 
 type Props = {
   id: string;
@@ -14,162 +20,26 @@ type Props = {
   children: ReactNode;
 };
 
-function TransformContainer({ id, children, canResize }: Props) {
-  const { workspaceRef, onTransformContainerMouseDown } = useWorkspaceRef();
+function TransformContainer({ id, children, canResize, canRotate }: Props) {
+  const { onItemPress, onItemResizeStart, onItemRotateStart } =
+    useWorkspaceRef();
+  const isSelected = useIsItemSelected(id);
+  const { createGeometry, resize } = useItemTransformActions(id);
 
   const innerRef = useRef<HTMLDivElement | null>(null);
   const selectionRef = useRef<HTMLDivElement>(null);
-  const resizeDirection = useRef<string>("r");
-
-  const isSelected = useIsItemSelected(id);
-
-  const {
-    translateTo,
-    rotateToAround,
-    scaleXTo,
-    scaleYTo,
-    createGeometry,
-    resize,
-  } = useTransformActions(id);
-
-  const getGeometry = useCallback(() => {
-    const geometry = useTransformStore.getState().items[id];
-    return geometry;
-  }, [id]);
-
-  const getItemSize = useCallback((): DOMPoint => {
-    const { scale, unscaledWidth, unscaledHeight } = getGeometry();
-
-    if (canResize) {
-      return new DOMPoint(unscaledWidth * scale.x, unscaledHeight * scale.y);
-    }
-
-    return new DOMPoint(unscaledWidth, unscaledHeight);
-  }, [canResize, getGeometry]);
-
-  const getCenter = useCallback((): DOMPoint => {
-    const { unscaledWidth, unscaledHeight, transform } = getGeometry();
-    return transform.transformPoint(
-      new DOMPoint(unscaledWidth / 2, unscaledHeight / 2)
-    );
-  }, [getGeometry]);
 
   const updateTransformStyle = useCallback(() => {
-    const { scale, transform } = getGeometry();
+    const geometry = getGeometry(id);
 
     if (innerRef.current) {
-      innerRef.current.style.transform = transform.toString();
+      innerRef.current.style.transform = geometry.transform.toString();
     }
 
     if (selectionRef.current) {
-      const unscaledTransform = new DOMMatrix()
-        .multiplySelf(transform)
-        .multiplySelf(new DOMMatrix().scaleSelf(scale.x, scale.y).inverse());
-
-      const scaledSize = getItemSize();
-
-      if (scaledSize.x < 0) {
-        selectionRef.current.style.width = `${Math.abs(scaledSize.x)}px`;
-        unscaledTransform.scaleSelf(-1, 1);
-      } else {
-        selectionRef.current.style.width = `${scaledSize.x}px`;
-      }
-
-      if (scaledSize.y < 0) {
-        selectionRef.current.style.height = `${Math.abs(scaledSize.y)}px`;
-        unscaledTransform.scaleSelf(1, -1);
-      } else {
-        selectionRef.current.style.height = `${scaledSize.y}px`;
-      }
-
-      selectionRef.current.style.transform = unscaledTransform.toString();
+      setSelectionTransformStyle(geometry, selectionRef.current);
     }
-  }, [getItemSize, getGeometry]);
-
-  // Resize current item.
-  const onResizerMouseMove = useCallback(
-    (event: MouseEvent) => {
-      if (!workspaceRef.current) {
-        return;
-      }
-
-      const { unscaledWidth, unscaledHeight, rotation, transform } =
-        getGeometry();
-      const mouse = getRelativeXY(workspaceRef.current, event);
-      const rotationRad = degToRad(rotation);
-      const origin = getOrigin(transform);
-      const distToOrigin = distance(mouse, origin);
-      const angleToOrigin = Math.atan2(mouse.y - origin.y, mouse.x - origin.x);
-
-      if (resizeDirection.current.includes("r")) {
-        scaleXTo(
-          (distToOrigin * Math.cos(angleToOrigin - rotationRad)) / unscaledWidth
-        );
-      }
-
-      if (resizeDirection.current.includes("b")) {
-        scaleYTo(
-          (distToOrigin * Math.sin(angleToOrigin - rotationRad)) /
-            unscaledHeight
-        );
-      }
-    },
-    [workspaceRef, getGeometry, scaleXTo, scaleYTo]
-  );
-
-  // Rotate current item.
-  const onRotatorMouseMove = useCallback(
-    (event: MouseEvent) => {
-      if (!workspaceRef.current) {
-        return;
-      }
-
-      const { scale } = getGeometry();
-      const center = getCenter();
-      const scaledSize = getItemSize();
-      const mouse = getRelativeXY(workspaceRef.current, event);
-
-      const newRotation =
-        Math.atan2(mouse.y - center.y, mouse.x - center.x) -
-        (scale.x < 0 ? -Math.PI : 0);
-
-      rotateToAround(
-        radToDeg(newRotation),
-        new DOMPoint(scaledSize.x / 2, scaledSize.y / 2)
-      );
-    },
-    [workspaceRef, getCenter, getGeometry, rotateToAround, getItemSize]
-  );
-
-  const onMouseUp = useCallback(() => {
-    document.removeEventListener("mousemove", onResizerMouseMove);
-    document.removeEventListener("mousemove", onRotatorMouseMove);
-
-    const { rotation } = getGeometry();
-    const center = getCenter();
-    const scaledSize = getItemSize();
-
-    translateTo(center.x - scaledSize.x / 2, center.y - scaledSize.y / 2);
-    rotateToAround(rotation, new DOMPoint(scaledSize.x / 2, scaledSize.y / 2));
-  }, [
-    onResizerMouseMove,
-    onRotatorMouseMove,
-    getCenter,
-    getItemSize,
-    translateTo,
-    getGeometry,
-    rotateToAround,
-  ]);
-
-  useEffect(() => {
-    document.addEventListener("mouseup", onMouseUp);
-
-    return () => {
-      document.removeEventListener("mouseup", onMouseUp);
-      document.removeEventListener("mousemove", onResizerMouseMove);
-      document.removeEventListener("mousemove", onRotatorMouseMove);
-    };
-  }, [onMouseUp, onResizerMouseMove, onRotatorMouseMove]);
+  }, [id]);
 
   useEffect(() => {
     const resizeObserver = new ResizeObserver((entries) => {
@@ -189,21 +59,12 @@ function TransformContainer({ id, children, canResize }: Props) {
   useEffect(() => {
     createGeometry();
 
-    return useTransformStore.subscribe(() => {
-      updateTransformStyle();
+    return useTransformStore.subscribe((state, prevState) => {
+      if (!Object.is(state.items[id], prevState.items[id])) {
+        updateTransformStyle();
+      }
     });
-  }, [createGeometry, updateTransformStyle]);
-
-  const onResizerMouseDown = (event: React.MouseEvent) => {
-    event.stopPropagation();
-
-    if (event.button === 0) {
-      resizeDirection.current =
-        (event.target as HTMLDivElement).dataset.direction ?? "";
-
-      document.addEventListener("mousemove", onResizerMouseMove);
-    }
-  };
+  }, [id, createGeometry, updateTransformStyle]);
 
   return (
     <div
@@ -211,7 +72,9 @@ function TransformContainer({ id, children, canResize }: Props) {
       id={`container-${id}`}
       draggable={false}
       onMouseDown={(event) => {
-        onTransformContainerMouseDown(id, event.nativeEvent);
+        event.stopPropagation();
+
+        onItemPress(id, event.nativeEvent);
       }}
     >
       <div
@@ -235,33 +98,60 @@ function TransformContainer({ id, children, canResize }: Props) {
           isSelected && "workspace__stage-item--selected"
         )}
       >
-        {isSelected && (
-          <div
+        {isSelected && canRotate && (
+          <RotatorHandle
             onMouseDown={(event) => {
               event.stopPropagation();
 
-              if (event.button === 0) {
-                document.addEventListener("mousemove", onRotatorMouseMove);
-              }
+              onItemRotateStart(id, event.nativeEvent);
             }}
-            draggable={false}
-            className="workspace__stage-item__anchor workspace__stage-item__anchor-rotate"
-          ></div>
+          />
         )}
 
         {isSelected &&
           canResize &&
-          ["r", "b", "rb"].map((direction) => (
-            <div
-              key={direction}
-              draggable={false}
-              className={`workspace__stage-item__anchor workspace__stage-item__anchor--${direction}`}
-              onMouseDown={onResizerMouseDown}
-              data-direction={direction}
-            ></div>
+          RESIZER_TYPES.map((resizeType) => (
+            <ResizerDot
+              key={resizeType}
+              position={resizeType}
+              onMouseDown={(event) => {
+                event.stopPropagation();
+
+                onItemResizeStart(id, resizeType, event.nativeEvent);
+              }}
+            />
           ))}
       </div>
     </div>
+  );
+}
+
+function setSelectionTransformStyle(
+  geometry: ItemGeometryInfo,
+  el: HTMLDivElement
+) {
+  const { transform, scale } = geometry;
+
+  const unscaledTransform = new DOMMatrix()
+    .multiplySelf(transform)
+    .multiplySelf(new DOMMatrix().scaleSelf(scale.x, scale.y).inverse());
+
+  const scaledSize = getItemSize(geometry);
+
+  if (scaledSize.x < 0) {
+    unscaledTransform.scaleSelf(-1, 1);
+  }
+  if (scaledSize.y < 0) {
+    unscaledTransform.scaleSelf(1, -1);
+  }
+
+  el.setAttribute(
+    "style",
+    `
+      width: ${Math.abs(scaledSize.x)}px;
+      height: ${Math.abs(scaledSize.y)}px;
+      transform: ${unscaledTransform};
+    `
   );
 }
 

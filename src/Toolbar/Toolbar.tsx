@@ -18,6 +18,7 @@ import FigureEdit from "./FigureEdit";
 import "./Toolbar.css";
 import RenderPanel from "./RenderPanel";
 import { useTransformStore } from "../store/transforms";
+import { useUndoStore } from "../store/undo";
 
 export default function Toolbar() {
   return (
@@ -30,6 +31,7 @@ export default function Toolbar() {
 
 function MainMenu() {
   const store = useWorkspaceStore();
+  const pushHistory = useUndoStore((store) => store.push);
   const fileRef = useRef<HTMLInputElement>(null);
 
   return (
@@ -52,6 +54,10 @@ function MainMenu() {
             if (file) {
               const pictureItem = makePictureItem(file);
               store.upsert(pictureItem);
+              pushHistory({
+                type: "create",
+                item: pictureItem,
+              });
               store.selectOne(pictureItem.id);
             }
           }}
@@ -63,6 +69,10 @@ function MainMenu() {
         onClick={() => {
           const textItem = makeTextItem();
           store.upsert(textItem);
+          pushHistory({
+            type: "create",
+            item: textItem,
+          });
           store.selectOne(textItem.id);
         }}
       >
@@ -72,6 +82,10 @@ function MainMenu() {
         onClick={() => {
           const figureItem = makeFigureItem(FigureType.Rect);
           store.upsert(figureItem);
+          pushHistory({
+            type: "create",
+            item: figureItem,
+          });
           store.selectOne(figureItem.id);
         }}
       >
@@ -81,6 +95,10 @@ function MainMenu() {
         onClick={() => {
           const figureItem = makeFigureItem(FigureType.Circle);
           store.upsert(figureItem);
+          pushHistory({
+            type: "create",
+            item: figureItem,
+          });
           store.selectOne(figureItem.id);
         }}
       >

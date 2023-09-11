@@ -3,66 +3,69 @@ import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
   useMemo,
   useRef,
 } from "react";
 
-import { useTransformStore } from "../store/transforms";
+import { ResizerType } from "./types";
+import {
+  ItemGeometryInfo,
+  TransformMutationRecorder,
+  useTransformActions,
+  useTransformStore,
+} from "../store/transforms";
 import { useWorkspaceStore } from "../store/workspace";
+import { degToRad, distance, getOrigin, radToDeg } from "../utils/math";
+import { getRelativeXY } from "../utils/events";
+import { TransformAction, useUndoStore } from "../store/undo";
 
-export const useTransformActions = (itemId: string) => {
-  const _translate = useTransformStore((store) => store.translate);
-  const _translateTo = useTransformStore((store) => store.translateTo);
-  const _rotateToAround = useTransformStore((store) => store.rotateToAround);
-  const _scaleTo = useTransformStore((store) => store.scaleTo);
-  const _createGeometry = useTransformStore((store) => store.create);
-  const _resize = useTransformStore((store) => store.resize);
+export const useItemTransformActions = (itemId: string) => {
+  const actions = useTransformActions();
 
   const translate = useCallback(
     (dx: number, dy: number) => {
-      _translate(itemId, dx, dy);
+      actions.translate(itemId, dx, dy);
     },
-    [itemId, _translate]
+    [itemId]
   );
 
   const translateTo = useCallback(
     (x: number, y: number) => {
-      _translateTo(itemId, x, y);
+      actions.translateTo(itemId, x, y);
     },
-    [itemId, _translateTo]
+    [itemId]
   );
 
   const rotateToAround = useCallback(
     (deg: number, p: DOMPoint) => {
-      _rotateToAround(itemId, deg, p);
+      actions.rotateToAround(itemId, deg, p);
     },
-    [itemId, _rotateToAround]
+    [itemId]
   );
 
   const scaleXTo = useCallback(
     (factor: number) => {
-      _scaleTo(itemId, factor, null);
+      actions.scaleTo(itemId, factor, null);
     },
-    [itemId, _scaleTo]
+    [itemId]
   );
 
   const scaleYTo = useCallback(
     (factor: number) => {
-      _scaleTo(itemId, null, factor);
+      actions.scaleTo(itemId, null, factor);
     },
-    [itemId, _scaleTo]
+    [itemId]
   );
 
   const createGeometry = useCallback(() => {
-    _createGeometry(itemId);
-  }, [itemId, _createGeometry]);
+    actions.createGeometry(itemId);
+  }, [itemId]);
 
   const resize = useCallback(
     (w: number, h: number) => {
-      _resize(itemId, w, h);
+      actions.resize(itemId, w, h);
     },
-    [itemId, _resize]
+    [itemId]
   );
 
   return {
@@ -78,7 +81,13 @@ export const useTransformActions = (itemId: string) => {
 
 type WorkspaceContexData = {
   workspaceRef: RefObject<HTMLDivElement>;
-  onTransformContainerMouseDown: (itemId: string, event: MouseEvent) => void;
+  onItemPress: (itemId: string, event: MouseEvent) => void;
+  onItemResizeStart: (
+    itemId: string,
+    type: ResizerType,
+    event: MouseEvent
+  ) => void;
+  onItemRotateStart: (itemId: string, event: MouseEvent) => void;
 };
 
 export const WorkspaceContex = createContext<WorkspaceContexData | null>(null);
@@ -93,43 +102,163 @@ export const useWorkspaceRef = (): WorkspaceContexData => {
   return ref;
 };
 
-export const useCreateWorkspaceRef = () => {
+export const useCreateWorkspaceRef = (): WorkspaceContexData => {
   const workspaceRef = useRef<HTMLDivElement>(null);
+  const { translate, rotateToAround, scaleTo, translateTo } =
+    useTransformActions();
   const selectOne = useWorkspaceStore((store) => store.selectOne);
   const toggleSelect = useWorkspaceStore((store) => store.toggleSelect);
-  const translate = useTransformStore((store) => store.translate);
-  const holding = useRef(false);
+  const pushHistory = useUndoStore((store) => store.push);
+  const resizeDirection = useRef<ResizerType>("bottom");
+  const isPristine = useRef<boolean>(true);
+  const transformRecorder = useRef<TransformMutationRecorder>(
+    new TransformMutationRecorder()
+  );
 
-  const onMouseMove = useCallback(
+  const onItemDrag = useCallback(
     (event: MouseEvent) => {
-      if (holding.current) {
-        Array.from(useWorkspaceStore.getState().selectedItems).forEach((id) => {
-          translate(id, event.movementX, event.movementY);
-        });
-      }
+      Array.from(useWorkspaceStore.getState().selectedItems).forEach((id) => {
+        translate(id, event.movementX, event.movementY);
+        isPristine.current = false;
+      });
     },
     [translate]
   );
 
-  const onMouseUp = useCallback(() => {
-    holding.current = false;
+  const onItemResize = useCallback(
+    (event: MouseEvent) => {
+      const selectedIds = Array.from(
+        useWorkspaceStore.getState().selectedItems
+      );
+
+      if (!workspaceRef.current || selectedIds.length === 0) {
+        return;
+      }
+
+      const [selectedId] = selectedIds;
+
+      const { unscaledWidth, unscaledHeight, rotation, transform } =
+        getGeometry(selectedId);
+      const mouse = getRelativeXY(workspaceRef.current, event);
+      const rotationRad = degToRad(rotation);
+      const origin = getOrigin(transform);
+      const distToOrigin = distance(mouse, origin);
+      const angleToOrigin = Math.atan2(mouse.y - origin.y, mouse.x - origin.x);
+
+      if (resizeDirection.current.includes("right")) {
+        scaleTo(
+          selectedId,
+          (distToOrigin * Math.cos(angleToOrigin - rotationRad)) /
+            unscaledWidth,
+          null
+        );
+      }
+
+      if (resizeDirection.current.includes("bottom")) {
+        scaleTo(
+          selectedId,
+          null,
+          (distToOrigin * Math.sin(angleToOrigin - rotationRad)) /
+            unscaledHeight
+        );
+      }
+
+      isPristine.current = false;
+    },
+    [scaleTo]
+  );
+
+  const onItemRotate = useCallback(
+    (event: MouseEvent) => {
+      const selectedIds = Array.from(
+        useWorkspaceStore.getState().selectedItems
+      );
+
+      if (!workspaceRef.current || selectedIds.length === 0) {
+        return;
+      }
+
+      const [selectedId] = selectedIds;
+
+      const g = getGeometry(selectedId);
+      const { scale } = g;
+      const center = getCenter(g);
+      const scaledSize = getItemSize(g);
+      const mouse = getRelativeXY(workspaceRef.current, event);
+
+      const newRotation =
+        Math.atan2(mouse.y - center.y, mouse.x - center.x) -
+        (scale.x < 0 ? -Math.PI : 0);
+
+      rotateToAround(
+        selectedId,
+        radToDeg(newRotation),
+        new DOMPoint(scaledSize.x / 2, scaledSize.y / 2)
+      );
+
+      isPristine.current = false;
+    },
+    [rotateToAround]
+  );
+
+  const onModificationStart = useCallback(() => {
+    transformRecorder.current.start();
   }, []);
 
-  useEffect(() => {
-    document.addEventListener("mousemove", onMouseMove);
-    document.addEventListener("mouseup", onMouseUp);
+  const onModificationEnd = useCallback(() => {
+    const report = transformRecorder.current.compare();
 
-    return () => {
-      document.removeEventListener("mousemove", onMouseMove);
-      document.removeEventListener("mouseup", onMouseUp);
+    if (report.modified.length === 0) {
+      return;
+    }
+
+    const historyAction: TransformAction = {
+      type: "transform",
+      before: {},
+      after: {},
     };
-  }, [onMouseMove, onMouseUp]);
+    const state = useTransformStore.getState();
+    report.modified.forEach((id) => {
+      historyAction.before[id] = transformRecorder.current.snapshot[id];
+      historyAction.after[id] = state.items[id];
+    });
 
-  const onTransformContainerMouseDown = useCallback(
+    pushHistory(historyAction);
+  }, [pushHistory]);
+
+  const onMouseUp = useCallback(() => {
+    document.removeEventListener("mousemove", onItemResize);
+    document.removeEventListener("mousemove", onItemDrag);
+    document.removeEventListener("mousemove", onItemRotate);
+
+    onModificationEnd();
+
+    Array.from(useWorkspaceStore.getState().selectedItems).forEach((id) => {
+      const g = getGeometry(id);
+      const center = getCenter(g);
+      const scaledSize = getItemSize(g);
+
+      translateTo(id, center.x - scaledSize.x / 2, center.y - scaledSize.y / 2);
+      rotateToAround(
+        id,
+        g.rotation,
+        new DOMPoint(scaledSize.x / 2, scaledSize.y / 2)
+      );
+    });
+
+    isPristine.current = true;
+  }, [
+    onItemResize,
+    onItemDrag,
+    onItemRotate,
+    translateTo,
+    rotateToAround,
+    onModificationEnd,
+  ]);
+
+  const onItemPress = useCallback(
     (targetId: string, event: MouseEvent) => {
       if (event.button === 0) {
-        holding.current = true;
-
         const alreadySelected = useWorkspaceStore
           .getState()
           .selectedItems.has(targetId);
@@ -139,18 +268,66 @@ export const useCreateWorkspaceRef = () => {
         } else if (!alreadySelected) {
           selectOne(targetId);
         }
+
+        onModificationStart();
+        document.addEventListener("mousemove", onItemDrag);
+        document.addEventListener("mouseup", onMouseUp, { once: true });
       }
     },
-    [selectOne, toggleSelect]
+    [selectOne, toggleSelect, onItemDrag, onModificationStart, onMouseUp]
+  );
+
+  const onItemRotateStart = useCallback(
+    (itemId: string, event: MouseEvent) => {
+      if (event.button === 0) {
+        selectOne(itemId);
+        onModificationStart();
+        document.addEventListener("mousemove", onItemRotate);
+        document.addEventListener("mouseup", onMouseUp, { once: true });
+      }
+    },
+    [selectOne, onItemRotate, onModificationStart, onMouseUp]
+  );
+
+  const onItemResizeStart = useCallback(
+    (itemId: string, type: ResizerType, event: MouseEvent) => {
+      if (event.button === 0) {
+        selectOne(itemId);
+        resizeDirection.current = type;
+        onModificationStart();
+        document.addEventListener("mousemove", onItemResize);
+        document.addEventListener("mouseup", onMouseUp, { once: true });
+      }
+    },
+    [selectOne, onItemResize, onModificationStart, onMouseUp]
   );
 
   const handlers = useMemo(
     () => ({
       workspaceRef,
-      onTransformContainerMouseDown,
+      onItemPress,
+      onItemRotateStart,
+      onItemResizeStart,
     }),
-    [onTransformContainerMouseDown]
+    [onItemPress, onItemRotateStart, onItemResizeStart]
   );
 
   return handlers;
 };
+
+export function getGeometry(itemId: string): ItemGeometryInfo {
+  const geometry = useTransformStore.getState().items[itemId];
+  return geometry;
+}
+
+function getCenter(g: ItemGeometryInfo): DOMPoint {
+  const { unscaledWidth, unscaledHeight, transform } = g;
+  return transform.transformPoint(
+    new DOMPoint(unscaledWidth / 2, unscaledHeight / 2)
+  );
+}
+
+export function getItemSize(g: ItemGeometryInfo): DOMPoint {
+  const { scale, unscaledWidth, unscaledHeight } = g;
+  return new DOMPoint(unscaledWidth * scale.x, unscaledHeight * scale.y);
+}

@@ -38,6 +38,11 @@ export type WorkspaceFigure = BaseWorkspaceItem & {
   color: string;
 };
 
+export type WorkspaceAnyItem =
+  | WorkspaceFigure
+  | WorkspacePicture
+  | WorkspaceText;
+
 export const makePictureItem = (file: File): WorkspacePicture => ({
   id: nanoid(),
   type: WorkspaceItemType.Picture,
@@ -74,7 +79,7 @@ export const useWorkspaceStore = createWithEqualityFn(
   immer(
     combine(
       {
-        stageItems: Object.create(null) as Record<string, BaseWorkspaceItem>,
+        stageItems: Object.create(null) as Record<string, WorkspaceAnyItem>,
         selectedItems: new Set<string>(),
 
         settings: {
@@ -85,7 +90,7 @@ export const useWorkspaceStore = createWithEqualityFn(
       },
 
       (set) => ({
-        upsert: <T extends BaseWorkspaceItem>(item: T) => {
+        upsert: (item: WorkspaceAnyItem) => {
           set((state) => {
             state.stageItems[item.id] = item;
           });
