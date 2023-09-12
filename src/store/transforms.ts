@@ -149,6 +149,10 @@ export const useTransformStore = createWithEqualityFn(
   shallow
 );
 
+export type TransformState = ReturnType<typeof useTransformStore.getState>;
+export const mergeTransformState = (newState: TransformState) =>
+  useTransformStore.setState(newState);
+
 export const useTransformActions = () => {
   const translate = useTransformStore((store) => store.translate);
   const translateTo = useTransformStore((store) => store.translateTo);
@@ -166,50 +170,3 @@ export const useTransformActions = () => {
     resize,
   };
 };
-
-class TransformMutationRecorderReport {
-  modified: string[] = [];
-  deleted: string[] = [];
-  added: string[] = [];
-
-  isEmpty(): boolean {
-    return (
-      this.modified.length === 0 &&
-      this.deleted.length === 0 &&
-      this.added.length === 0
-    );
-  }
-}
-
-export class TransformMutationRecorder {
-  snapshot: ReturnType<typeof useTransformStore.getState>["items"];
-
-  constructor() {
-    this.snapshot = useTransformStore.getState().items;
-  }
-
-  start() {
-    this.snapshot = useTransformStore.getState().items;
-  }
-
-  compare(): TransformMutationRecorderReport {
-    const report = new TransformMutationRecorderReport();
-    const newState = useTransformStore.getState().items;
-
-    for (const id in this.snapshot) {
-      if (id in newState === false) {
-        report.deleted.push(id);
-      } else if (this.snapshot[id] !== newState[id]) {
-        report.modified.push(id);
-      }
-    }
-
-    for (const id in newState) {
-      if (id in this.snapshot === false) {
-        report.added.push(id);
-      }
-    }
-
-    return report;
-  }
-}

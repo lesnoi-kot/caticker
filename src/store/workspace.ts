@@ -10,7 +10,11 @@ export enum WorkspaceItemType {
   Figure,
 }
 
-export type BaseWorkspaceItem = { id: string; type: WorkspaceItemType };
+export type BaseWorkspaceItem = {
+  id: string;
+  type: WorkspaceItemType;
+  layer: number;
+};
 
 export type WorkspaceText = BaseWorkspaceItem & {
   text: string;
@@ -46,13 +50,15 @@ export type WorkspaceAnyItem =
 export const makePictureItem = (file: File): WorkspacePicture => ({
   id: nanoid(),
   type: WorkspaceItemType.Picture,
+  layer: 0,
   file,
 });
 
 export const makeTextItem = (): WorkspaceText => ({
-  text: "",
   id: nanoid(),
   type: WorkspaceItemType.Text,
+  layer: 0,
+  text: "Введи текст!",
   color: "black",
   fontFamily: "system-ui",
   fontSize: 32,
@@ -63,6 +69,7 @@ export const makeTextItem = (): WorkspaceText => ({
 export const makeFigureItem = (figure: FigureType): WorkspaceFigure => ({
   id: nanoid(),
   type: WorkspaceItemType.Figure,
+  layer: 0,
   figure,
   color: "teal",
 });
@@ -113,7 +120,32 @@ export const useWorkspaceStore = createWithEqualityFn(
         },
 
         removeAll: () => {
-          set({ stageItems: Object.create(null) });
+          set({
+            stageItems: Object.create(null),
+            selectedItems: new Set<string>(),
+          });
+        },
+
+        layerUp: (id: string) => {
+          set((state) => {
+            let maxLayer = 0;
+            for (const anotherId in state.stageItems) {
+              maxLayer = Math.max(maxLayer, state.stageItems[anotherId].layer);
+            }
+
+            state.stageItems[id].layer = maxLayer + 1;
+          });
+        },
+
+        layerDown: (id: string) => {
+          set((state) => {
+            let minLayer = 0;
+            for (const anotherId in state.stageItems) {
+              minLayer = Math.min(minLayer, state.stageItems[anotherId].layer);
+            }
+
+            state.stageItems[id].layer = minLayer - 1;
+          });
         },
 
         selectOne: (id: string) => {
@@ -176,8 +208,16 @@ export const useWorkspaceStore = createWithEqualityFn(
   shallow
 );
 
+export type WorkspaceState = ReturnType<typeof useWorkspaceStore.getState>;
+export const mergeWorkspaceState = (newState: WorkspaceState) =>
+  useWorkspaceStore.setState(newState);
+
 export const useWorkspaceItemIds = () =>
-  useWorkspaceStore((state) => Object.keys(state.stageItems));
+  useWorkspaceStore((state) =>
+    Object.keys(state.stageItems).sort((a, b) => {
+      return state.stageItems[a].layer - state.stageItems[b].layer;
+    })
+  );
 
 export const useWorkspaceItem = (id: string) =>
   useWorkspaceStore((state) => state.stageItems[id]);

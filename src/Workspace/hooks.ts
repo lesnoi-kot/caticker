@@ -10,74 +10,13 @@ import {
 import { ResizerType } from "./types";
 import {
   ItemGeometryInfo,
-  TransformMutationRecorder,
   useTransformActions,
   useTransformStore,
 } from "../store/transforms";
 import { useWorkspaceStore } from "../store/workspace";
 import { degToRad, distance, getOrigin, radToDeg } from "../utils/math";
 import { getRelativeXY } from "../utils/events";
-import { TransformAction, useUndoStore } from "../store/undo";
-
-export const useItemTransformActions = (itemId: string) => {
-  const actions = useTransformActions();
-
-  const translate = useCallback(
-    (dx: number, dy: number) => {
-      actions.translate(itemId, dx, dy);
-    },
-    [itemId]
-  );
-
-  const translateTo = useCallback(
-    (x: number, y: number) => {
-      actions.translateTo(itemId, x, y);
-    },
-    [itemId]
-  );
-
-  const rotateToAround = useCallback(
-    (deg: number, p: DOMPoint) => {
-      actions.rotateToAround(itemId, deg, p);
-    },
-    [itemId]
-  );
-
-  const scaleXTo = useCallback(
-    (factor: number) => {
-      actions.scaleTo(itemId, factor, null);
-    },
-    [itemId]
-  );
-
-  const scaleYTo = useCallback(
-    (factor: number) => {
-      actions.scaleTo(itemId, null, factor);
-    },
-    [itemId]
-  );
-
-  const createGeometry = useCallback(() => {
-    actions.createGeometry(itemId);
-  }, [itemId]);
-
-  const resize = useCallback(
-    (w: number, h: number) => {
-      actions.resize(itemId, w, h);
-    },
-    [itemId]
-  );
-
-  return {
-    translate,
-    translateTo,
-    rotateToAround,
-    scaleXTo,
-    scaleYTo,
-    createGeometry,
-    resize,
-  };
-};
+import { HistoryComparer, useUndoStore } from "../store/undo";
 
 type WorkspaceContexData = {
   workspaceRef: RefObject<HTMLDivElement>;
@@ -111,9 +50,7 @@ export const useCreateWorkspaceRef = (): WorkspaceContexData => {
   const pushHistory = useUndoStore((store) => store.push);
   const resizeDirection = useRef<ResizerType>("bottom");
   const isPristine = useRef<boolean>(true);
-  const transformRecorder = useRef<TransformMutationRecorder>(
-    new TransformMutationRecorder()
-  );
+  const historyComparer = useRef<HistoryComparer>(new HistoryComparer());
 
   const onItemDrag = useCallback(
     (event: MouseEvent) => {
@@ -202,28 +139,16 @@ export const useCreateWorkspaceRef = (): WorkspaceContexData => {
   );
 
   const onModificationStart = useCallback(() => {
-    transformRecorder.current.start();
+    historyComparer.current.start();
   }, []);
 
   const onModificationEnd = useCallback(() => {
-    const report = transformRecorder.current.compare();
+    const possibleHistoryAction =
+      historyComparer.current.compareToCurrentStates();
 
-    if (report.modified.length === 0) {
-      return;
+    if (possibleHistoryAction) {
+      pushHistory(possibleHistoryAction);
     }
-
-    const historyAction: TransformAction = {
-      type: "transform",
-      before: {},
-      after: {},
-    };
-    const state = useTransformStore.getState();
-    report.modified.forEach((id) => {
-      historyAction.before[id] = transformRecorder.current.snapshot[id];
-      historyAction.after[id] = state.items[id];
-    });
-
-    pushHistory(historyAction);
   }, [pushHistory]);
 
   const onMouseUp = useCallback(() => {

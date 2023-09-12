@@ -20,6 +20,7 @@ import KeyboardHandler from "./KeyboardHandler";
 import Figure from "./Figure";
 import AreaSelector from "./AreaSelector";
 import ResizerDot from "./ResizerDot";
+import { HistoryComparer, useUndoStore } from "../store/undo";
 
 import "./Workspace.css";
 
@@ -84,6 +85,8 @@ const WorkspaceResultWindow = ({ children }: WorkspaceResultWindowProps) => {
   const workspaceHandlers = useCreateWorkspaceRef();
   const { workspaceRef } = workspaceHandlers;
   const currResizer = useRef("");
+  const historyComparer = useRef<HistoryComparer>(new HistoryComparer());
+  const pushHistory = useUndoStore((store) => store.push);
 
   const settings = useWorkspaceStore((store) => store.settings);
   const modifySettings = useWorkspaceStore((store) => store.modifySettings);
@@ -109,20 +112,25 @@ const WorkspaceResultWindow = ({ children }: WorkspaceResultWindowProps) => {
     [workspaceRef, modifySettings]
   );
 
-  const onResizerMouseDown = useCallback(
+  const onResizeEnd = useCallback(() => {
+    document.removeEventListener("mousemove", onResize);
+
+    const possibleHistoryAction =
+      historyComparer.current.compareToCurrentStates();
+
+    if (possibleHistoryAction) {
+      pushHistory(possibleHistoryAction);
+    }
+  }, [onResize, pushHistory]);
+
+  const onResizeStart = useCallback(
     (resizer: string) => {
       currResizer.current = resizer;
+      historyComparer.current.start();
       document.addEventListener("mousemove", onResize);
-
-      document.addEventListener(
-        "mouseup",
-        () => {
-          document.removeEventListener("mousemove", onResize);
-        },
-        { once: true }
-      );
+      document.addEventListener("mouseup", onResizeEnd, { once: true });
     },
-    [onResize]
+    [onResize, onResizeEnd]
   );
 
   return (
@@ -140,7 +148,7 @@ const WorkspaceResultWindow = ({ children }: WorkspaceResultWindowProps) => {
           <ResizerDot
             position="right"
             onMouseDown={() => {
-              onResizerMouseDown("right");
+              onResizeStart("right");
             }}
           />
         )}
@@ -148,7 +156,7 @@ const WorkspaceResultWindow = ({ children }: WorkspaceResultWindowProps) => {
           <ResizerDot
             position="bottom"
             onMouseDown={() => {
-              onResizerMouseDown("bottom");
+              onResizeStart("bottom");
             }}
           />
         )}

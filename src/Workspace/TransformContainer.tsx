@@ -2,13 +2,12 @@ import { ReactNode, useCallback, useEffect, useRef } from "react";
 import cn from "classnames";
 
 import { useIsItemSelected } from "../store/workspace";
-import { ItemGeometryInfo, useTransformStore } from "../store/transforms";
 import {
-  getGeometry,
-  getItemSize,
-  useItemTransformActions,
-  useWorkspaceRef,
-} from "./hooks";
+  ItemGeometryInfo,
+  useTransformActions,
+  useTransformStore,
+} from "../store/transforms";
+import { getGeometry, getItemSize, useWorkspaceRef } from "./hooks";
 import ResizerDot from "./ResizerDot";
 import { RESIZER_TYPES } from "./types";
 import RotatorHandle from "./RotatorHandle";
@@ -24,7 +23,7 @@ function TransformContainer({ id, children, canResize, canRotate }: Props) {
   const { onItemPress, onItemResizeStart, onItemRotateStart } =
     useWorkspaceRef();
   const isSelected = useIsItemSelected(id);
-  const { createGeometry, resize } = useItemTransformActions(id);
+  const { createGeometry, resize } = useTransformActions();
 
   const innerRef = useRef<HTMLDivElement | null>(null);
   const selectionRef = useRef<HTMLDivElement>(null);
@@ -44,7 +43,7 @@ function TransformContainer({ id, children, canResize, canRotate }: Props) {
   useEffect(() => {
     const resizeObserver = new ResizeObserver((entries) => {
       const innerElSize = entries[0].borderBoxSize;
-      resize(innerElSize[0].inlineSize, innerElSize[0].blockSize);
+      resize(id, innerElSize[0].inlineSize, innerElSize[0].blockSize);
     });
 
     if (innerRef.current) {
@@ -54,10 +53,10 @@ function TransformContainer({ id, children, canResize, canRotate }: Props) {
     return () => {
       resizeObserver.disconnect();
     };
-  }, [resize, updateTransformStyle]);
+  }, [id, resize, updateTransformStyle]);
 
   useEffect(() => {
-    createGeometry();
+    createGeometry(id);
 
     return useTransformStore.subscribe((state, prevState) => {
       if (!Object.is(state.items[id], prevState.items[id])) {

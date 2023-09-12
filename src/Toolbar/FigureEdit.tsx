@@ -1,6 +1,7 @@
 import { ChromePicker } from "react-color";
 
 import { WorkspaceFigure, useWorkspaceStore } from "../store/workspace";
+import { runInUndoHistory } from "../store/undo";
 
 import "./Toolbar.css";
 
@@ -14,9 +15,9 @@ export default function FigureEdit({ item }: { item: WorkspaceFigure }) {
         <ChromePicker
           color={item.color}
           onChange={(color) => {
-            const updatedItem = { ...item };
-            updatedItem.color = color.hex;
-            upsert(updatedItem);
+            runInUndoHistory(() => {
+              upsert({ ...item, color: color.hex });
+            });
           }}
         />
       </div>

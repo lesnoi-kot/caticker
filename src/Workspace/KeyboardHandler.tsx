@@ -6,7 +6,11 @@ import {
   makePictureItem,
 } from "../store/workspace";
 import { useWorkspaceRef } from "./hooks";
-import { redoAction, undoAction, useUndoStore } from "../store/undo";
+import {
+  redoNextAction,
+  runInUndoHistory,
+  undoLastAction,
+} from "../store/undo";
 
 const supportedPasteFormats = [
   "image/png",
@@ -22,28 +26,23 @@ const isSupportedPasteData = (format: string) =>
 export default function KeyboardHandler() {
   const { workspaceRef } = useWorkspaceRef();
   const selectedItems = useSelectedItemIds();
-  const pushHistory = useUndoStore((store) => store.push);
 
-  const { removeMultiple, selectNone, selectAll, upsert } = useWorkspaceStore(
-    (store) => ({
+  const { removeMultiple, selectNone, selectOne, selectAll, upsert } =
+    useWorkspaceStore((store) => ({
       removeMultiple: store.removeMultiple,
       selectNone: store.selectNone,
+      selectOne: store.selectOne,
       selectAll: store.selectAll,
       upsert: store.upsert,
-    })
-  );
+    }));
 
   const onKeyDown = useCallback(
     (event: KeyboardEvent) => {
       switch (event.key.toLowerCase()) {
         case "delete":
-          pushHistory({
-            type: "delete",
-            items: selectedItems.map(
-              (id) => useWorkspaceStore.getState().stageItems[id]
-            ),
+          runInUndoHistory(() => {
+            removeMultiple(selectedItems);
           });
-          removeMultiple(selectedItems);
           break;
         case "c":
           if (event.ctrlKey) {
@@ -57,12 +56,12 @@ export default function KeyboardHandler() {
           break;
         case "z":
           if (event.ctrlKey) {
-            undoAction();
+            undoLastAction();
           }
           break;
         case "y":
           if (event.ctrlKey) {
-            redoAction();
+            redoNextAction();
           }
           break;
         case "a":
@@ -93,13 +92,17 @@ export default function KeyboardHandler() {
           const asFile = item.getAsFile();
 
           if (asFile) {
-            upsert(makePictureItem(asFile));
+            runInUndoHistory(() => {
+              const item = makePictureItem(asFile);
+              upsert(item);
+              selectOne(item.id);
+            });
           }
           break;
         }
       }
     },
-    [upsert, workspaceRef]
+    [upsert, selectOne, workspaceRef]
   );
 
   useEffect(() => {

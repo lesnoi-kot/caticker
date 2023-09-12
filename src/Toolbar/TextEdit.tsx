@@ -1,7 +1,7 @@
 import { ChromePicker } from "react-color";
 
-import "./Toolbar.css";
 import { WorkspaceText, useWorkspaceStore } from "../store/workspace";
+import { runInUndoHistory } from "../store/undo";
 
 const FONT_INCREASE_SPEED = 7 / 100;
 
@@ -9,25 +9,27 @@ export default function TextEdit({ item }: { item: WorkspaceText }) {
   const upsert = useWorkspaceStore((store) => store.upsert);
 
   const increaseFontSize = (sign: number) => {
-    const updatedItem = { ...item };
-    updatedItem.fontSize = Math.max(
-      1,
-      updatedItem.fontSize +
-        sign * Math.ceil(FONT_INCREASE_SPEED * item.fontSize)
-    );
-    upsert(updatedItem);
+    runInUndoHistory(() => {
+      upsert({
+        ...item,
+        fontSize: Math.max(
+          1,
+          item.fontSize + sign * Math.ceil(FONT_INCREASE_SPEED * item.fontSize)
+        ),
+      });
+    });
   };
 
   const increaseStrokeWidth = (sign: number) => {
-    const updatedItem = { ...item };
-    updatedItem.strokeWidth = Math.max(0, updatedItem.strokeWidth + sign);
-    upsert(updatedItem);
+    runInUndoHistory(() => {
+      upsert({ ...item, strokeWidth: Math.max(0, item.strokeWidth + sign) });
+    });
   };
 
-  const changeFont = (newFont: string) => {
-    const updatedItem = { ...item };
-    updatedItem.fontFamily = newFont;
-    upsert(updatedItem);
+  const changeFont = (fontFamily: string) => {
+    runInUndoHistory(() => {
+      upsert({ ...item, fontFamily });
+    });
   };
 
   return (
@@ -74,9 +76,9 @@ export default function TextEdit({ item }: { item: WorkspaceText }) {
         <ChromePicker
           color={item.color}
           onChange={(color) => {
-            const updatedItem = { ...item };
-            updatedItem.color = color.hex;
-            upsert(updatedItem);
+            runInUndoHistory(() => {
+              upsert({ ...item, color: color.hex });
+            });
           }}
         />
       </div>
@@ -86,9 +88,9 @@ export default function TextEdit({ item }: { item: WorkspaceText }) {
         <ChromePicker
           color={item.strokeColor ?? undefined}
           onChange={(color) => {
-            const updatedItem = { ...item };
-            updatedItem.strokeColor = color.hex;
-            upsert(updatedItem);
+            runInUndoHistory(() => {
+              upsert({ ...item, strokeColor: color.hex });
+            });
           }}
         />
       </div>

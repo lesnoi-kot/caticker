@@ -11,14 +11,15 @@ import {
   WorkspaceItemType,
   WorkspaceText,
   WorkspaceFigure,
+  useSelectedItemIds,
 } from "../store/workspace";
 import TextEdit from "./TextEdit";
 import FigureEdit from "./FigureEdit";
-
-import "./Toolbar.css";
 import RenderPanel from "./RenderPanel";
 import { useTransformStore } from "../store/transforms";
-import { useUndoStore } from "../store/undo";
+import { runInUndoHistory } from "../store/undo";
+
+import "./Toolbar.css";
 
 export default function Toolbar() {
   return (
@@ -31,7 +32,6 @@ export default function Toolbar() {
 
 function MainMenu() {
   const store = useWorkspaceStore();
-  const pushHistory = useUndoStore((store) => store.push);
   const fileRef = useRef<HTMLInputElement>(null);
 
   return (
@@ -53,12 +53,11 @@ function MainMenu() {
 
             if (file) {
               const pictureItem = makePictureItem(file);
-              store.upsert(pictureItem);
-              pushHistory({
-                type: "create",
-                item: pictureItem,
+
+              runInUndoHistory(() => {
+                store.upsert(pictureItem);
+                store.selectOne(pictureItem.id);
               });
-              store.selectOne(pictureItem.id);
             }
           }}
           hidden
@@ -68,12 +67,11 @@ function MainMenu() {
       <button
         onClick={() => {
           const textItem = makeTextItem();
-          store.upsert(textItem);
-          pushHistory({
-            type: "create",
-            item: textItem,
+
+          runInUndoHistory(() => {
+            store.upsert(textItem);
+            store.selectOne(textItem.id);
           });
-          store.selectOne(textItem.id);
         }}
       >
         Добавить текст
@@ -81,12 +79,11 @@ function MainMenu() {
       <button
         onClick={() => {
           const figureItem = makeFigureItem(FigureType.Rect);
-          store.upsert(figureItem);
-          pushHistory({
-            type: "create",
-            item: figureItem,
+
+          runInUndoHistory(() => {
+            store.upsert(figureItem);
+            store.selectOne(figureItem.id);
           });
-          store.selectOne(figureItem.id);
         }}
       >
         Добавить прямоугольник
@@ -94,39 +91,42 @@ function MainMenu() {
       <button
         onClick={() => {
           const figureItem = makeFigureItem(FigureType.Circle);
-          store.upsert(figureItem);
-          pushHistory({
-            type: "create",
-            item: figureItem,
+
+          runInUndoHistory(() => {
+            store.upsert(figureItem);
+            store.selectOne(figureItem.id);
           });
-          store.selectOne(figureItem.id);
         }}
       >
         Добавить кружок
       </button>
 
       <div>
-        <p>Фоновый цвет</p>
-        <ChromePicker
-          color={store.settings.stageColor}
-          onChange={(color) => {
-            store.modifySettings({
-              stageColor: color.hex,
-            });
-          }}
-        />
-      </div>
+        <div>
+          <p>Фоновый цвет</p>
+          <ChromePicker
+            color={store.settings.stageColor}
+            onChange={(color) => {
+              runInUndoHistory(() => {
+                store.modifySettings({
+                  stageColor: color.hex,
+                });
+              });
+            }}
+          />
+        </div>
 
-      <RenderPanel />
+        <RenderPanel />
+      </div>
     </div>
   );
 }
 
 function ItemMenu() {
-  const selectedItemIds = Array.from(
-    useWorkspaceStore((store) => store.selectedItems)
-  );
+  const selectedItemIds = useSelectedItemIds();
   const selectedItems = useWorkspaceItems(selectedItemIds);
+  const layerUp = useWorkspaceStore((store) => store.layerUp);
+  const layerDown = useWorkspaceStore((store) => store.layerDown);
   const removeMultiple = useWorkspaceStore((store) => store.removeMultiple);
   const rotateAround = useTransformStore((store) => store.rotateAround);
   const rotateToAround = useTransformStore((store) => store.rotateToAround);
@@ -140,17 +140,15 @@ function ItemMenu() {
   const [firstSelected] = selectedItems;
 
   const changeOrder = (direction: "up" | "down") => {
-    selectedItemIds.forEach((id) => {
-      const el = document.getElementById(`container-${id}`);
-
-      if (el) {
-        if (direction === "down") {
-          el.parentElement?.prepend(el);
-        } else {
-          el.parentElement?.append(el);
-        }
-      }
-    });
+    if (direction === "up") {
+      selectedItemIds.forEach((id) => {
+        layerUp(id);
+      });
+    } else {
+      selectedItemIds.forEach((id) => {
+        layerDown(id);
+      });
+    }
   };
 
   return (
@@ -158,8 +156,10 @@ function ItemMenu() {
       <div className="toolbar__transform-menu">
         <button
           onClick={() => {
-            selectedItemIds.forEach((id) => {
-              rotateAround(id, -90);
+            runInUndoHistory(() => {
+              selectedItemIds.forEach((id) => {
+                rotateAround(id, -90);
+              });
             });
           }}
         >
@@ -168,8 +168,10 @@ function ItemMenu() {
 
         <button
           onClick={() => {
-            selectedItemIds.forEach((id) => {
-              rotateToAround(id, 0);
+            runInUndoHistory(() => {
+              selectedItemIds.forEach((id) => {
+                rotateToAround(id, 0);
+              });
             });
           }}
         >
@@ -178,8 +180,10 @@ function ItemMenu() {
 
         <button
           onClick={() => {
-            selectedItemIds.forEach((id) => {
-              rotateAround(id, 90);
+            runInUndoHistory(() => {
+              selectedItemIds.forEach((id) => {
+                rotateAround(id, 90);
+              });
             });
           }}
         >
@@ -188,8 +192,10 @@ function ItemMenu() {
 
         <button
           onClick={() => {
-            selectedItemIds.forEach((id) => {
-              scaleTo(id, 1, 1);
+            runInUndoHistory(() => {
+              selectedItemIds.forEach((id) => {
+                scaleTo(id, 1, 1);
+              });
             });
           }}
         >
@@ -198,7 +204,9 @@ function ItemMenu() {
 
         <button
           onClick={() => {
-            changeOrder("up");
+            runInUndoHistory(() => {
+              changeOrder("up");
+            });
           }}
         >
           Вверх ↥
@@ -206,7 +214,9 @@ function ItemMenu() {
 
         <button
           onClick={() => {
-            changeOrder("down");
+            runInUndoHistory(() => {
+              changeOrder("down");
+            });
           }}
         >
           Вниз ↧
@@ -222,7 +232,9 @@ function ItemMenu() {
 
         <button
           onClick={() => {
-            removeMultiple(selectedItemIds);
+            runInUndoHistory(() => {
+              removeMultiple(selectedItemIds);
+            });
           }}
         >
           Удалить

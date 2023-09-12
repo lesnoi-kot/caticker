@@ -3,35 +3,35 @@ import { immer } from "zustand/middleware/immer";
 import { createWithEqualityFn } from "zustand/traditional";
 import { shallow } from "zustand/shallow";
 
-import { ItemGeometryInfo, useTransformStore } from "./transforms";
-import { WorkspaceAnyItem, useWorkspaceStore } from "./workspace";
+import {
+  TransformState,
+  mergeTransformState,
+  useTransformStore,
+} from "./transforms";
+import {
+  WorkspaceState,
+  mergeWorkspaceState,
+  useWorkspaceStore,
+} from "./workspace";
 
 export type TransformAction = {
   type: "transform";
-  before: Record<string, ItemGeometryInfo>;
-  after: Record<string, ItemGeometryInfo>;
-};
-
-export type CreateAction = {
-  type: "create";
-  item: WorkspaceAnyItem;
-};
-
-export type DeleteAction = {
-  type: "delete";
-  items: WorkspaceAnyItem[];
+  before: TransformState;
+  after: TransformState;
 };
 
 export type ModifyItemAction = {
   type: "modify";
-  item: WorkspaceAnyItem;
+  before: WorkspaceState;
+  after: WorkspaceState;
 };
 
-type UserAction =
-  | TransformAction
-  | CreateAction
-  | ModifyItemAction
-  | DeleteAction;
+export type CompoundAction = {
+  type: "compound";
+  children: Array<TransformAction | ModifyItemAction>;
+};
+
+type UserAction = TransformAction | ModifyItemAction | CompoundAction;
 
 export const useUndoStore = createWithEqualityFn(
   immer(
@@ -75,7 +75,48 @@ export const useUndoStore = createWithEqualityFn(
   shallow
 );
 
-export function undoAction() {
+export function undoAction(action: UserAction) {
+  switch (action.type) {
+    case "transform":
+      mergeTransformState(action.before);
+      break;
+    case "modify":
+      mergeWorkspaceState(action.before);
+      break;
+    case "compound":
+      action.children.forEach((childAction) => {
+        undoAction(childAction);
+      });
+      break;
+    default:
+      break;
+  }
+
+  useUndoStore.getState().pop();
+}
+
+export function redoAction(action: UserAction) {
+  switch (action.type) {
+    case "transform":
+      mergeTransformState(action.after);
+      break;
+
+    case "modify":
+      mergeWorkspaceState(action.after);
+      break;
+    case "compound":
+      action.children.forEach((childAction) => {
+        redoAction(childAction);
+      });
+      break;
+    default:
+      break;
+  }
+
+  useUndoStore.getState().forward();
+}
+
+export function undoLastAction() {
   const state = useUndoStore.getState();
   const lastAction = state.actions[state.index];
 
@@ -83,31 +124,10 @@ export function undoAction() {
     return;
   }
 
-  switch (lastAction.type) {
-    case "transform":
-      for (const id in lastAction.before) {
-        useTransformStore.getState().replace(id, lastAction.before[id]);
-      }
-      break;
-    case "create":
-      useWorkspaceStore.getState().remove(lastAction.item.id);
-      break;
-    case "delete":
-      lastAction.items.forEach((item) => {
-        useWorkspaceStore.getState().upsert(item);
-      });
-      break;
-    case "modify":
-      useWorkspaceStore.getState().upsert(lastAction.item);
-      break;
-    default:
-      break;
-  }
-
-  state.pop();
+  undoAction(lastAction);
 }
 
-export function redoAction() {
+export function redoNextAction() {
   const state = useUndoStore.getState();
   const nextAction = state.actions[state.index + 1];
 
@@ -115,26 +135,71 @@ export function redoAction() {
     return;
   }
 
-  switch (nextAction.type) {
-    case "transform":
-      for (const id in nextAction.after) {
-        useTransformStore.getState().replace(id, nextAction.after[id]);
-      }
-      break;
-    case "create":
-      useWorkspaceStore.getState().upsert(nextAction.item);
-      break;
-    case "delete":
-      nextAction.items.forEach((item) => {
-        useWorkspaceStore.getState().remove(item.id);
-      });
-      break;
-    case "modify":
-      useWorkspaceStore.getState().upsert(nextAction.item);
-      break;
-    default:
-      break;
+  redoAction(nextAction);
+}
+
+export class HistoryComparer {
+  workspaceState: WorkspaceState | null = null;
+  transformState: TransformState | null = null;
+
+  start() {
+    this.workspaceState = useWorkspaceStore.getState();
+    this.transformState = useTransformStore.getState();
   }
 
-  state.forward();
+  compareToCurrentStates(): UserAction | null {
+    if (!this.workspaceState || !this.transformState) {
+      throw new Error("HistoryComparer invariant: no 'before'-state");
+    }
+
+    const currentWorkspaceState = useWorkspaceStore.getState();
+    const currentTransformState = useTransformStore.getState();
+
+    let transformAction: TransformAction | null = null;
+    let modifyItemAction: ModifyItemAction | null = null;
+
+    if (this.workspaceState !== currentWorkspaceState) {
+      modifyItemAction = {
+        type: "modify",
+        before: this.workspaceState,
+        after: currentWorkspaceState,
+      };
+    }
+
+    if (this.transformState !== currentTransformState) {
+      transformAction = {
+        type: "transform",
+        before: this.transformState,
+        after: currentTransformState,
+      };
+    }
+
+    if (transformAction && modifyItemAction) {
+      return {
+        type: "compound",
+        children: [transformAction, modifyItemAction],
+      } as CompoundAction;
+    }
+
+    if (transformAction) {
+      return transformAction;
+    }
+
+    if (modifyItemAction) {
+      return modifyItemAction;
+    }
+
+    return null;
+  }
+}
+
+export function runInUndoHistory(stateMutator: () => void): void {
+  const c = new HistoryComparer();
+  c.start();
+  stateMutator();
+  const possibleHistoryAction = c.compareToCurrentStates();
+
+  if (possibleHistoryAction) {
+    useUndoStore.getState().push(possibleHistoryAction);
+  }
 }

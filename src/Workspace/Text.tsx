@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { WorkspaceText, useWorkspaceStore } from "../store/workspace";
 import type { ItemComponentInterface } from "./types";
+import { runInUndoHistory } from "../store/undo";
 
 type Props = ItemComponentInterface<WorkspaceText>;
 
@@ -34,16 +35,20 @@ export default function Text({ item }: Props) {
         setEditable(true);
       }}
       onChange={(e) => {
-        upsert({
-          ...item,
-          text: (e.target as HTMLDivElement).innerText,
+        runInUndoHistory(() => {
+          upsert({
+            ...item,
+            text: (e.target as HTMLSpanElement).innerText,
+          });
         });
       }}
       onBlur={() => {
         setEditable(false);
 
         if (!(ref.current?.textContent ?? "").trim()) {
-          remove(item.id);
+          runInUndoHistory(() => {
+            remove(item.id);
+          });
         }
       }}
     >
