@@ -1,5 +1,4 @@
 import { useRef } from "react";
-import { ChromePicker } from "react-color";
 
 import {
   makePictureItem,
@@ -13,6 +12,7 @@ import {
   WorkspaceFigure,
   useSelectedItemIds,
 } from "../store/workspace";
+import ColorPicker from "../HistoryAwareColorPicker";
 import TextEdit from "./TextEdit";
 import FigureEdit from "./FigureEdit";
 import RenderPanel from "./RenderPanel";
@@ -104,14 +104,10 @@ function MainMenu() {
       <div>
         <div>
           <p>Фоновый цвет</p>
-          <ChromePicker
+          <ColorPicker
             color={store.settings.stageColor}
             onChange={(color) => {
-              runInUndoHistory(() => {
-                store.modifySettings({
-                  stageColor: color.hex,
-                });
-              });
+              store.modifySettings({ stageColor: color });
             }}
           />
         </div>

@@ -1,9 +1,5 @@
-import { ChromePicker } from "react-color";
-
 import { WorkspaceFigure, useWorkspaceStore } from "../store/workspace";
-import { runInUndoHistory } from "../store/undo";
-
-import "./Toolbar.css";
+import ColorPicker from "../HistoryAwareColorPicker";
 
 export default function FigureEdit({ item }: { item: WorkspaceFigure }) {
   const upsert = useWorkspaceStore((store) => store.upsert);
@@ -12,12 +8,10 @@ export default function FigureEdit({ item }: { item: WorkspaceFigure }) {
     <div className="toolbar__figure-menu">
       <div>
         <p>Цвет фигуры</p>
-        <ChromePicker
+        <ColorPicker
           color={item.color}
           onChange={(color) => {
-            runInUndoHistory(() => {
-              upsert({ ...item, color: color.hex });
-            });
+            upsert({ ...item, color });
           }}
         />
       </div>

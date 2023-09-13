@@ -1,7 +1,6 @@
-import { ChromePicker } from "react-color";
-
 import { WorkspaceText, useWorkspaceStore } from "../store/workspace";
 import { runInUndoHistory } from "../store/undo";
+import ColorPicker from "../HistoryAwareColorPicker";
 
 const FONT_INCREASE_SPEED = 7 / 100;
 
@@ -73,24 +72,20 @@ export default function TextEdit({ item }: { item: WorkspaceText }) {
 
       <div>
         <p>Цвет текста</p>
-        <ChromePicker
+        <ColorPicker
           color={item.color}
           onChange={(color) => {
-            runInUndoHistory(() => {
-              upsert({ ...item, color: color.hex });
-            });
+            upsert({ ...item, color });
           }}
         />
       </div>
 
       <div>
         <p>Цвет очертания</p>
-        <ChromePicker
+        <ColorPicker
           color={item.strokeColor ?? undefined}
           onChange={(color) => {
-            runInUndoHistory(() => {
-              upsert({ ...item, strokeColor: color.hex });
-            });
+            upsert({ ...item, strokeColor: color });
           }}
         />
       </div>
