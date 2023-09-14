@@ -67,6 +67,11 @@ function useWorkspaceSelectTool() {
     [workspaceRef, ids, selectMany, stageSettings]
   );
 
+  const onMouseUp = useCallback(() => {
+    selectorRef.current!.style.display = "none";
+    document.removeEventListener("mousemove", onMouseMove);
+  }, [onMouseMove]);
+
   const onMouseDown = useCallback(
     (event: MouseEvent) => {
       if (event.button !== 0) {
@@ -94,24 +99,19 @@ function useWorkspaceSelectTool() {
       rect.current.width = rect.current.height = 0;
 
       document.addEventListener("mousemove", onMouseMove);
+      document.addEventListener("mouseup", onMouseUp, { once: true });
     },
-    [workspaceRef, onMouseMove, selectNone, stageSettings]
+    [workspaceRef, onMouseMove, selectNone, onMouseUp, stageSettings]
   );
 
-  const onMouseUp = useCallback(() => {
-    selectorRef.current!.style.display = "none";
-    document.removeEventListener("mousemove", onMouseMove);
-  }, [onMouseMove]);
-
   useEffect(() => {
-    document.addEventListener("mouseup", onMouseUp);
-    document.addEventListener("mousedown", onMouseDown);
+    const currentRef = workspaceRef.current;
+    currentRef!.addEventListener("mousedown", onMouseDown);
 
     return () => {
-      document.removeEventListener("mouseup", onMouseUp);
-      document.removeEventListener("mousedown", onMouseDown);
+      currentRef!.removeEventListener("mousedown", onMouseDown);
     };
-  }, [onMouseUp, onMouseDown]);
+  }, [onMouseDown, workspaceRef]);
 
   return { selectorRef };
 }

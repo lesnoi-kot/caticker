@@ -23,13 +23,17 @@ function TransformContainer({ id, children, canResize, canRotate }: Props) {
   const { onItemPress, onItemResizeStart, onItemRotateStart } =
     useWorkspaceRef();
   const isSelected = useIsItemSelected(id);
-  const { createGeometry, resize } = useTransformActions();
+  const { resize } = useTransformActions();
 
   const innerRef = useRef<HTMLDivElement | null>(null);
   const selectionRef = useRef<HTMLDivElement>(null);
 
   const updateTransformStyle = useCallback(() => {
     const geometry = getGeometry(id);
+
+    if (!geometry) {
+      return;
+    }
 
     if (innerRef.current) {
       innerRef.current.style.transform = geometry.transform.toString();
@@ -56,14 +60,12 @@ function TransformContainer({ id, children, canResize, canRotate }: Props) {
   }, [id, resize, updateTransformStyle]);
 
   useEffect(() => {
-    createGeometry(id);
-
     return useTransformStore.subscribe((state, prevState) => {
-      if (!Object.is(state.items[id], prevState.items[id])) {
+      if (state.items[id] !== prevState.items[id]) {
         updateTransformStyle();
       }
     });
-  }, [id, createGeometry, updateTransformStyle]);
+  }, [id, updateTransformStyle]);
 
   return (
     <div

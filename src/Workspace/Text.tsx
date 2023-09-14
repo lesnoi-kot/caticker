@@ -10,7 +10,7 @@ export default function Text({ item }: Props) {
   const [editable, setEditable] = useState(true);
   const remove = useWorkspaceStore((store) => store.remove);
   const upsert = useWorkspaceStore((store) => store.upsert);
-  const ref = useRef<HTMLDivElement>(null);
+  const ref = useRef<HTMLPreElement>(null);
 
   useEffect(() => {
     if (ref.current) {
@@ -19,10 +19,12 @@ export default function Text({ item }: Props) {
   }, []);
 
   return (
-    <div
+    <pre
       ref={ref}
       contentEditable={editable}
+      suppressContentEditableWarning
       className="workspace__stage-text"
+      role="textbox"
       draggable={false}
       style={{
         fontSize: `${item.fontSize}px`,
@@ -34,25 +36,27 @@ export default function Text({ item }: Props) {
       onDoubleClick={() => {
         setEditable(true);
       }}
-      onChange={(e) => {
-        runInUndoHistory(() => {
-          upsert({
-            ...item,
-            text: (e.target as HTMLSpanElement).innerText,
-          });
-        });
-      }}
-      onBlur={() => {
+      // onKeyDown={(e) => {
+      //   e.stopPropagation();
+      // }}
+      onBlur={(e) => {
         setEditable(false);
 
         if (!(ref.current?.textContent ?? "").trim()) {
           runInUndoHistory(() => {
             remove(item.id);
           });
+        } else {
+          runInUndoHistory(() => {
+            upsert({
+              ...item,
+              text: (e.target as HTMLPreElement).innerText,
+            });
+          });
         }
       }}
     >
       {item.text}
-    </div>
+    </pre>
   );
 }

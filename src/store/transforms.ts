@@ -16,26 +16,33 @@ export type ItemGeometryInfo = {
   polygon: geometry.Polygon;
 };
 
+type CreateActionOptions = {
+  x?: number;
+  y?: number;
+  width?: number;
+  height?: number;
+};
+
 export const useTransformStore = createWithEqualityFn(
   immer(
     combine(
       { items: Object.create(null) as Record<string, ItemGeometryInfo> },
 
       (set, get) => ({
-        create: (itemId: string) => {
+        create: (itemId: string, options?: CreateActionOptions) => {
           if (get().items[itemId]) {
             return;
           }
 
           set((state) => {
             state.items[itemId] = {
-              unscaledWidth: 0,
-              unscaledHeight: 0,
-              transform: new DOMMatrix(),
-              translate: { x: 0, y: 0 },
-              rotationAround: new DOMPoint(0, 0),
+              unscaledWidth: options?.width ?? 0,
+              unscaledHeight: options?.height ?? 0,
+              translate: { x: options?.x ?? 0, y: options?.y ?? 0 },
               rotation: 0,
+              rotationAround: new DOMPoint(0, 0),
               scale: { x: 1, y: 1 },
+              transform: new DOMMatrix(),
               polygon: new geometry.Polygon(),
             };
           });
@@ -143,6 +150,18 @@ export const useTransformStore = createWithEqualityFn(
 
           get().recalculate(itemId);
         },
+
+        remove: (itemId: string) => {
+          set((state) => {
+            delete state.items[itemId];
+          });
+        },
+
+        reset: () => {
+          set((state) => {
+            state.items = Object.create(null);
+          });
+        },
       })
     )
   ),
@@ -158,7 +177,7 @@ export const useTransformActions = () => {
   const translateTo = useTransformStore((store) => store.translateTo);
   const rotateToAround = useTransformStore((store) => store.rotateToAround);
   const scaleTo = useTransformStore((store) => store.scaleTo);
-  const createGeometry = useTransformStore((store) => store.create);
+  const create = useTransformStore((store) => store.create);
   const resize = useTransformStore((store) => store.resize);
 
   return {
@@ -166,7 +185,7 @@ export const useTransformActions = () => {
     translateTo,
     rotateToAround,
     scaleTo,
-    createGeometry,
+    create,
     resize,
   };
 };

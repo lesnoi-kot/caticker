@@ -3,6 +3,7 @@ import { combine } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
 import { createWithEqualityFn } from "zustand/traditional";
 import { shallow } from "zustand/shallow";
+import { useTransformStore } from "./transforms";
 
 export enum WorkspaceItemType {
   Picture,
@@ -81,6 +82,7 @@ type StageSettings = {
 };
 
 export const STICKER_MAX_SIZE = 512;
+export const FIGURE_BASE_SIZE = 100;
 
 export const useWorkspaceStore = createWithEqualityFn(
   immer(
@@ -98,12 +100,16 @@ export const useWorkspaceStore = createWithEqualityFn(
 
       (set) => ({
         upsert: (item: WorkspaceAnyItem) => {
+          useTransformStore.getState().create(item.id);
+
           set((state) => {
             state.stageItems[item.id] = item;
           });
         },
 
         remove: (id: string) => {
+          useTransformStore.getState().remove(id);
+
           set((state) => {
             delete state.stageItems[id];
             state.selectedItems.delete(id);
@@ -113,6 +119,7 @@ export const useWorkspaceStore = createWithEqualityFn(
         removeMultiple: (ids: string[]) => {
           set((state) => {
             for (const id of ids) {
+              useTransformStore.getState().remove(id);
               delete state.stageItems[id];
               state.selectedItems.delete(id);
             }
@@ -120,6 +127,8 @@ export const useWorkspaceStore = createWithEqualityFn(
         },
 
         removeAll: () => {
+          useTransformStore.getState().reset();
+
           set({
             stageItems: Object.create(null),
             selectedItems: new Set<string>(),
@@ -232,3 +241,11 @@ export const useIsItemSelected = (id: string) =>
 
 export const useSelectedItemIds = () =>
   useWorkspaceStore((state) => Array.from(state.selectedItems));
+
+export const useWorkspaceStoreActions = () =>
+  useWorkspaceStore((store) => ({
+    upsert: store.upsert,
+    selectOne: store.selectOne,
+    selectMany: store.selectMany,
+    modifySettings: store.modifySettings,
+  }));

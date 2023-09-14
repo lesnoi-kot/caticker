@@ -1,22 +1,37 @@
 import { useState } from "react";
+
 import { useWorkspaceStore } from "../store/workspace";
-import { renderSticker } from "./renderer";
+import { renderSticker } from "../renderer/renderer";
+import { useTransformStore } from "../store/transforms";
 
 export type SupportedRenderFormat = "webp" | "png";
 
 export default function RenderPanel() {
   const [format, setFormat] = useState<SupportedRenderFormat>("webp");
-  const store = useWorkspaceStore();
 
   const onFormatChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormat(e.target.value);
+    setFormat(e.target.value as SupportedRenderFormat);
+  };
+
+  const onRenderStickerClick = () => {
+    const { settings, stageItems } = useWorkspaceStore.getState();
+    const { items: transformItems } = useTransformStore.getState();
+
+    renderSticker({
+      width: settings.stageWidth,
+      height: settings.stageHeight,
+      backgroundColor: settings.stageColor,
+      workspaceItems: Object.values(stageItems),
+      transformItems,
+      imageType: `image/${format}`,
+    });
   };
 
   return (
-    <div className="toolbar__main-menu">
-      <div>
-        <p>Рендер</p>
+    <div>
+      <p>Рендер</p>
 
+      <div className="flex flex-col gap-4">
         <label>
           <input
             type="radio"
@@ -25,9 +40,9 @@ export default function RenderPanel() {
             onChange={onFormatChange}
             checked={format === "webp"}
           />
-          webp
+          &nbsp;webp
         </label>
-        <br />
+
         <label>
           <input
             type="radio"
@@ -36,24 +51,10 @@ export default function RenderPanel() {
             onChange={onFormatChange}
             checked={format === "png"}
           />
-          png
+          &nbsp;png
         </label>
-        <br />
-        <br />
 
-        <button
-          onClick={() => {
-            renderSticker({
-              width: store.settings.stageWidth,
-              height: store.settings.stageHeight,
-              workspaceItems: Object.values(store.stageItems),
-              imageType: `image/${format}`,
-              backgroundColor: store.settings.stageColor,
-            });
-          }}
-        >
-          Скачать
-        </button>
+        <button onClick={onRenderStickerClick}>Скачать</button>
       </div>
     </div>
   );

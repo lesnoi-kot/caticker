@@ -11,6 +11,7 @@ import {
   WorkspaceText,
   WorkspaceFigure,
   useSelectedItemIds,
+  useWorkspaceStoreActions,
 } from "../store/workspace";
 import ColorPicker from "../HistoryAwareColorPicker";
 import TextEdit from "./TextEdit";
@@ -31,87 +32,80 @@ export default function Toolbar() {
 }
 
 function MainMenu() {
-  const store = useWorkspaceStore();
+  const { upsert, selectOne } = useWorkspaceStoreActions();
   const fileRef = useRef<HTMLInputElement>(null);
 
   return (
-    <div className="toolbar__main-menu">
-      <label
-        htmlFor="picture"
-        onClick={() => {
-          fileRef?.current?.click();
-        }}
-      >
-        <input
-          ref={fileRef}
-          type="file"
-          name="picture"
-          id="picture"
-          accept="image/png,image/jpeg,image/webp"
-          onChange={(event) => {
-            const file = event.target.files?.[0];
-
-            if (file) {
-              const pictureItem = makePictureItem(file);
-
-              runInUndoHistory(() => {
-                store.upsert(pictureItem);
-                store.selectOne(pictureItem.id);
-              });
-            }
+    <div className="flex gap-4 flex-col">
+      <div className="flex gap-4 items-start justify-center">
+        <label
+          htmlFor="picture"
+          onClick={() => {
+            fileRef?.current?.click();
           }}
-          hidden
-        />
-        <button>Добавить картинку</button>
-      </label>
-      <button
-        onClick={() => {
-          const textItem = makeTextItem();
+        >
+          <input
+            ref={fileRef}
+            type="file"
+            name="picture"
+            id="picture"
+            accept="image/png,image/jpeg,image/webp"
+            onChange={(event) => {
+              const file = event.target.files?.[0];
 
-          runInUndoHistory(() => {
-            store.upsert(textItem);
-            store.selectOne(textItem.id);
-          });
-        }}
-      >
-        Добавить текст
-      </button>
-      <button
-        onClick={() => {
-          const figureItem = makeFigureItem(FigureType.Rect);
+              if (file) {
+                const pictureItem = makePictureItem(file);
 
-          runInUndoHistory(() => {
-            store.upsert(figureItem);
-            store.selectOne(figureItem.id);
-          });
-        }}
-      >
-        Добавить прямоугольник
-      </button>
-      <button
-        onClick={() => {
-          const figureItem = makeFigureItem(FigureType.Circle);
-
-          runInUndoHistory(() => {
-            store.upsert(figureItem);
-            store.selectOne(figureItem.id);
-          });
-        }}
-      >
-        Добавить кружок
-      </button>
-
-      <div>
-        <div>
-          <p>Фоновый цвет</p>
-          <ColorPicker
-            color={store.settings.stageColor}
-            onChange={(color) => {
-              store.modifySettings({ stageColor: color });
+                runInUndoHistory(() => {
+                  upsert(pictureItem);
+                  selectOne(pictureItem.id);
+                });
+              }
             }}
+            hidden
           />
-        </div>
+          <button>Добавить картинку</button>
+        </label>
+        <button
+          onClick={() => {
+            const textItem = makeTextItem();
 
+            runInUndoHistory(() => {
+              upsert(textItem);
+              selectOne(textItem.id);
+            });
+          }}
+        >
+          Добавить текст
+        </button>
+        <button
+          onClick={() => {
+            const figureItem = makeFigureItem(FigureType.Rect);
+
+            runInUndoHistory(() => {
+              upsert(figureItem);
+              selectOne(figureItem.id);
+            });
+          }}
+        >
+          Добавить прямоугольник
+        </button>
+        <button
+          onClick={() => {
+            const figureItem = makeFigureItem(FigureType.Circle);
+
+            runInUndoHistory(() => {
+              upsert(figureItem);
+              selectOne(figureItem.id);
+            });
+          }}
+        >
+          Добавить кружок
+        </button>
+      </div>
+
+      <div className="flex gap-4 items-start justify-center">
+        <StageColorPicker />
         <RenderPanel />
       </div>
     </div>
@@ -243,6 +237,23 @@ function ItemMenu() {
       {oneSelected && firstSelected.type === WorkspaceItemType.Figure && (
         <FigureEdit item={firstSelected as WorkspaceFigure} />
       )}
+    </div>
+  );
+}
+
+function StageColorPicker() {
+  const { modifySettings } = useWorkspaceStoreActions();
+  const stageSettings = useWorkspaceStore((store) => store.settings);
+
+  return (
+    <div>
+      <p>Фоновый цвет</p>
+      <ColorPicker
+        color={stageSettings.stageColor}
+        onChange={(color) => {
+          modifySettings({ stageColor: color });
+        }}
+      />
     </div>
   );
 }
