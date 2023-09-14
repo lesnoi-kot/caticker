@@ -4,10 +4,12 @@ import cn from "classnames";
 import { useIsItemSelected } from "../store/workspace";
 import {
   ItemGeometryInfo,
+  getGeometry,
+  getItemSize,
   useTransformActions,
   useTransformStore,
 } from "../store/transforms";
-import { getGeometry, getItemSize, useWorkspaceRef } from "./hooks";
+import { useWorkspaceRef } from "./hooks";
 import ResizerDot from "./ResizerDot";
 import { RESIZER_TYPES } from "./types";
 import RotatorHandle from "./RotatorHandle";

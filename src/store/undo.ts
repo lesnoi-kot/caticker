@@ -89,10 +89,8 @@ export function undoAction(action: UserAction) {
       });
       break;
     default:
-      break;
+      throw new Error("Invalid history item");
   }
-
-  useUndoStore.getState().pop();
 }
 
 export function redoAction(action: UserAction) {
@@ -110,10 +108,8 @@ export function redoAction(action: UserAction) {
       });
       break;
     default:
-      break;
+      throw new Error("Invalid history item");
   }
-
-  useUndoStore.getState().forward();
 }
 
 export function undoLastAction() {
@@ -125,6 +121,7 @@ export function undoLastAction() {
   }
 
   undoAction(lastAction);
+  useUndoStore.getState().pop();
 }
 
 export function redoNextAction() {
@@ -136,6 +133,7 @@ export function redoNextAction() {
   }
 
   redoAction(nextAction);
+  useUndoStore.getState().forward();
 }
 
 export class HistoryComparer {

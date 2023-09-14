@@ -72,7 +72,7 @@ export const makeFigureItem = (figure: FigureType): WorkspaceFigure => ({
   type: WorkspaceItemType.Figure,
   layer: 0,
   figure,
-  color: "teal",
+  color: figure === FigureType.Rect ? "teal" : "blueviolet",
 });
 
 type StageSettings = {
@@ -116,7 +116,7 @@ export const useWorkspaceStore = createWithEqualityFn(
           });
         },
 
-        removeMultiple: (ids: string[]) => {
+        removeMultiple: (ids: Iterable<string>) => {
           set((state) => {
             for (const id of ids) {
               useTransformStore.getState().remove(id);
@@ -247,5 +247,8 @@ export const useWorkspaceStoreActions = () =>
     upsert: store.upsert,
     selectOne: store.selectOne,
     selectMany: store.selectMany,
+    removeMultiple: store.removeMultiple,
+    selectNone: store.selectNone,
+    selectAll: store.selectAll,
     modifySettings: store.modifySettings,
   }));

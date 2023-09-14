@@ -2,8 +2,8 @@ import { useCallback, useEffect } from "react";
 
 import {
   useWorkspaceStore,
-  useSelectedItemIds,
   makePictureItem,
+  useWorkspaceStoreActions,
 } from "../store/workspace";
 import { useWorkspaceRef } from "./hooks";
 import {
@@ -25,23 +25,15 @@ const isSupportedPasteData = (format: string) =>
 
 export default function KeyboardHandler() {
   const { workspaceRef } = useWorkspaceRef();
-  const selectedItems = useSelectedItemIds();
-
   const { removeMultiple, selectNone, selectOne, selectAll, upsert } =
-    useWorkspaceStore((store) => ({
-      removeMultiple: store.removeMultiple,
-      selectNone: store.selectNone,
-      selectOne: store.selectOne,
-      selectAll: store.selectAll,
-      upsert: store.upsert,
-    }));
+    useWorkspaceStoreActions();
 
   const onKeyDown = useCallback(
     (event: KeyboardEvent) => {
       switch (event.key.toLowerCase()) {
         case "delete":
           runInUndoHistory(() => {
-            removeMultiple(selectedItems);
+            removeMultiple(useWorkspaceStore.getState().selectedItems);
           });
           break;
         case "c":
@@ -78,7 +70,7 @@ export default function KeyboardHandler() {
           break;
       }
     },
-    [selectedItems, removeMultiple, selectNone, selectAll]
+    [removeMultiple, selectNone, selectAll]
   );
 
   const onPaste = useCallback(

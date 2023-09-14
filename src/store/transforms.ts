@@ -1,5 +1,6 @@
 import { combine } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
+import { Draft } from "immer";
 import { createWithEqualityFn } from "zustand/traditional";
 import { shallow } from "zustand/shallow";
 import geometry from "@flatten-js/core";
@@ -54,7 +55,8 @@ export const useTransformStore = createWithEqualityFn(
           });
         },
 
-        recalculate: (itemId: string) => {
+        // Compute the item's transform matrix to utilize it in every rerender.
+        recalculateTransformMatrix: (itemId: string) => {
           set((state) => {
             const g = state.items[itemId];
 
@@ -67,7 +69,27 @@ export const useTransformStore = createWithEqualityFn(
                   .translate(-g.rotationAround.x, -g.rotationAround.y)
               )
               .scaleSelf(g.scale.x, g.scale.y);
+          });
+        },
 
+        // Recalculate item's polygon to utilize it in area mouse selection.
+        // Also fixes rotation point after rescaling.
+        // Supposed to be called when user ends any particular transform operation.
+        recalculatePolygonAndRotationPoint: (itemId: string) => {
+          set((state) => {
+            const g = state.items[itemId];
+            const center = getCenter(g);
+            const scaledSize = getItemSize(g);
+
+            // Fix up the item for new position and rotation after rescaling.
+            state.items[itemId].translate.x = center.x - scaledSize.x / 2;
+            state.items[itemId].translate.y = center.y - scaledSize.y / 2;
+            state.items[itemId].rotationAround = new DOMPoint(
+              scaledSize.x / 2,
+              scaledSize.y / 2
+            );
+
+            // Recalculate the polygon.
             const p1 = g.transform.transformPoint(new DOMPoint(0, 0));
             const p2 = g.transform.transformPoint(
               new DOMPoint(g.unscaledWidth, 0)
@@ -94,7 +116,7 @@ export const useTransformStore = createWithEqualityFn(
             state.items[itemId].translate.y += dy;
           });
 
-          get().recalculate(itemId);
+          useTransformStore.getState().recalculateTransformMatrix(itemId);
         },
 
         translateTo: (itemId: string, x: number, y: number) => {
@@ -103,7 +125,7 @@ export const useTransformStore = createWithEqualityFn(
             state.items[itemId].translate.y = y;
           });
 
-          get().recalculate(itemId);
+          useTransformStore.getState().recalculateTransformMatrix(itemId);
         },
 
         rotateAround: (itemId: string, deg: number, p?: DOMPoint) => {
@@ -115,7 +137,7 @@ export const useTransformStore = createWithEqualityFn(
             }
           });
 
-          get().recalculate(itemId);
+          useTransformStore.getState().recalculateTransformMatrix(itemId);
         },
 
         rotateToAround: (itemId: string, deg: number, p?: DOMPoint) => {
@@ -126,7 +148,7 @@ export const useTransformStore = createWithEqualityFn(
             }
           });
 
-          get().recalculate(itemId);
+          useTransformStore.getState().recalculateTransformMatrix(itemId);
         },
 
         scaleTo: (itemId: string, x: number | null, y: number | null) => {
@@ -139,7 +161,7 @@ export const useTransformStore = createWithEqualityFn(
             }
           });
 
-          get().recalculate(itemId);
+          useTransformStore.getState().recalculateTransformMatrix(itemId);
         },
 
         resize: (itemId: string, w: number, h: number) => {
@@ -148,7 +170,10 @@ export const useTransformStore = createWithEqualityFn(
             state.items[itemId].unscaledHeight = h;
           });
 
-          get().recalculate(itemId);
+          useTransformStore
+            .getState()
+            .recalculatePolygonAndRotationPoint(itemId);
+          useTransformStore.getState().recalculateTransformMatrix(itemId);
         },
 
         remove: (itemId: string) => {
@@ -169,6 +194,7 @@ export const useTransformStore = createWithEqualityFn(
 );
 
 export type TransformState = ReturnType<typeof useTransformStore.getState>;
+
 export const mergeTransformState = (newState: TransformState) =>
   useTransformStore.setState(newState);
 
@@ -179,6 +205,9 @@ export const useTransformActions = () => {
   const scaleTo = useTransformStore((store) => store.scaleTo);
   const create = useTransformStore((store) => store.create);
   const resize = useTransformStore((store) => store.resize);
+  const recalculatePolygonAndRotationPoint = useTransformStore(
+    (store) => store.recalculatePolygonAndRotationPoint
+  );
 
   return {
     translate,
@@ -187,5 +216,27 @@ export const useTransformActions = () => {
     scaleTo,
     create,
     resize,
+    recalculatePolygonAndRotationPoint,
   };
 };
+
+export function getGeometry(itemId: string): ItemGeometryInfo {
+  const geometry = useTransformStore.getState().items[itemId];
+  return geometry;
+}
+
+export function getCenter(
+  g: ItemGeometryInfo | Draft<ItemGeometryInfo>
+): DOMPoint {
+  const { unscaledWidth, unscaledHeight, transform } = g;
+  return transform.transformPoint(
+    new DOMPoint(unscaledWidth / 2, unscaledHeight / 2)
+  );
+}
+
+export function getItemSize(
+  g: ItemGeometryInfo | Draft<ItemGeometryInfo>
+): DOMPoint {
+  const { scale, unscaledWidth, unscaledHeight } = g;
+  return new DOMPoint(unscaledWidth * scale.x, unscaledHeight * scale.y);
+}

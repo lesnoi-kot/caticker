@@ -9,9 +9,10 @@ import {
 
 import { ResizerType } from "./types";
 import {
-  ItemGeometryInfo,
+  getCenter,
+  getGeometry,
+  getItemSize,
   useTransformActions,
-  useTransformStore,
 } from "../store/transforms";
 import { useWorkspaceStore } from "../store/workspace";
 import { degToRad, distance, getOrigin, radToDeg } from "../utils/math";
@@ -43,20 +44,22 @@ export const useWorkspaceRef = (): WorkspaceContexData => {
 
 export const useCreateWorkspaceRef = (): WorkspaceContexData => {
   const workspaceRef = useRef<HTMLDivElement>(null);
-  const { translate, rotateToAround, scaleTo, translateTo } =
-    useTransformActions();
+  const {
+    translate,
+    rotateToAround,
+    scaleTo,
+    recalculatePolygonAndRotationPoint,
+  } = useTransformActions();
   const selectOne = useWorkspaceStore((store) => store.selectOne);
   const toggleSelect = useWorkspaceStore((store) => store.toggleSelect);
   const pushHistory = useUndoStore((store) => store.push);
   const resizeDirection = useRef<ResizerType>("bottom");
-  const isPristine = useRef<boolean>(true);
   const historyComparer = useRef<HistoryComparer>(new HistoryComparer());
 
   const onItemDrag = useCallback(
     (event: MouseEvent) => {
       Array.from(useWorkspaceStore.getState().selectedItems).forEach((id) => {
         translate(id, event.movementX, event.movementY);
-        isPristine.current = false;
       });
     },
     [translate]
@@ -99,8 +102,6 @@ export const useCreateWorkspaceRef = (): WorkspaceContexData => {
             unscaledHeight
         );
       }
-
-      isPristine.current = false;
     },
     [scaleTo]
   );
@@ -132,8 +133,6 @@ export const useCreateWorkspaceRef = (): WorkspaceContexData => {
         radToDeg(newRotation),
         new DOMPoint(scaledSize.x / 2, scaledSize.y / 2)
       );
-
-      isPristine.current = false;
     },
     [rotateToAround]
   );
@@ -158,27 +157,15 @@ export const useCreateWorkspaceRef = (): WorkspaceContexData => {
 
     onModificationEnd();
 
-    Array.from(useWorkspaceStore.getState().selectedItems).forEach((id) => {
-      const g = getGeometry(id);
-      const center = getCenter(g);
-      const scaledSize = getItemSize(g);
-
-      translateTo(id, center.x - scaledSize.x / 2, center.y - scaledSize.y / 2);
-      rotateToAround(
-        id,
-        g.rotation,
-        new DOMPoint(scaledSize.x / 2, scaledSize.y / 2)
-      );
+    useWorkspaceStore.getState().selectedItems.forEach((id) => {
+      recalculatePolygonAndRotationPoint(id);
     });
-
-    isPristine.current = true;
   }, [
     onItemResize,
     onItemDrag,
     onItemRotate,
-    translateTo,
-    rotateToAround,
     onModificationEnd,
+    recalculatePolygonAndRotationPoint,
   ]);
 
   const onItemPress = useCallback(
@@ -239,20 +226,3 @@ export const useCreateWorkspaceRef = (): WorkspaceContexData => {
 
   return handlers;
 };
-
-export function getGeometry(itemId: string): ItemGeometryInfo {
-  const geometry = useTransformStore.getState().items[itemId];
-  return geometry;
-}
-
-function getCenter(g: ItemGeometryInfo): DOMPoint {
-  const { unscaledWidth, unscaledHeight, transform } = g;
-  return transform.transformPoint(
-    new DOMPoint(unscaledWidth / 2, unscaledHeight / 2)
-  );
-}
-
-export function getItemSize(g: ItemGeometryInfo): DOMPoint {
-  const { scale, unscaledWidth, unscaledHeight } = g;
-  return new DOMPoint(unscaledWidth * scale.x, unscaledHeight * scale.y);
-}
