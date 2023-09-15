@@ -1,4 +1,4 @@
-import { ItemGeometryInfo } from "../store/transforms";
+import type { ItemGeometryInfo } from "../store/transforms";
 import {
   FIGURE_BASE_SIZE,
   FigureType,
@@ -9,16 +9,19 @@ import {
   WorkspaceText,
 } from "../store/workspace";
 
-type RenderStickerArguments = {
+export type RenderStickerArguments = {
   width: number;
   height: number;
   workspaceItems: WorkspaceAnyItem[];
   transformItems: Record<string, ItemGeometryInfo>;
   imageType: string;
   backgroundColor?: string;
+  roundBorders?: boolean;
 };
 
-export async function renderSticker(args: RenderStickerArguments) {
+export async function renderSticker(
+  args: RenderStickerArguments
+): Promise<Blob> {
   const {
     width,
     height,
@@ -26,9 +29,18 @@ export async function renderSticker(args: RenderStickerArguments) {
     transformItems,
     imageType,
     backgroundColor,
+    roundBorders,
   } = args;
   const canvas = new OffscreenCanvas(width, height);
   const ctx = canvas.getContext("2d")!;
+
+  ctx.clearRect(0, 0, width, height);
+
+  if (roundBorders) {
+    ctx.roundRect(0, 0, width, height, [15]);
+    ctx.clip();
+  }
+
   ctx.fillStyle = backgroundColor ?? "transparent";
   ctx.fillRect(0, 0, width, height);
 
@@ -49,8 +61,7 @@ export async function renderSticker(args: RenderStickerArguments) {
     ctx.restore();
   }
 
-  const blob = await canvas.convertToBlob({ type: imageType });
-  window.open(URL.createObjectURL(blob), "_blank");
+  return canvas.convertToBlob({ type: imageType });
 }
 
 async function renderImage(
@@ -58,7 +69,7 @@ async function renderImage(
   args: RenderStickerArguments,
   picture: WorkspacePicture
 ) {
-  const img = await window.createImageBitmap(picture.file);
+  const img = await self.createImageBitmap(picture.file);
   const transform = args.transformItems[picture.id];
 
   ctx.drawImage(img, 0, 0, transform.unscaledWidth, transform.unscaledHeight);

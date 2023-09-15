@@ -1,13 +1,14 @@
 import { useState } from "react";
 
 import { useWorkspaceStore } from "../store/workspace";
-import { renderSticker } from "../renderer/renderer";
 import { useTransformStore } from "../store/transforms";
+import { worker } from "../renderer/worker";
 
 export type SupportedRenderFormat = "webp" | "png";
 
 export default function RenderPanel() {
   const [format, setFormat] = useState<SupportedRenderFormat>("webp");
+  const [roundCorners, setRoundCorners] = useState(true);
 
   const onFormatChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormat(e.target.value as SupportedRenderFormat);
@@ -17,13 +18,17 @@ export default function RenderPanel() {
     const { settings, stageItems } = useWorkspaceStore.getState();
     const { items: transformItems } = useTransformStore.getState();
 
-    renderSticker({
-      width: settings.stageWidth,
-      height: settings.stageHeight,
-      backgroundColor: settings.stageColor,
-      workspaceItems: Object.values(stageItems),
-      transformItems,
-      imageType: `image/${format}`,
+    worker.postMessage({
+      type: "renderSticker",
+      data: {
+        width: settings.stageWidth,
+        height: settings.stageHeight,
+        backgroundColor: settings.stageColor,
+        workspaceItems: Object.values(stageItems),
+        transformItems,
+        imageType: `image/${format}`,
+        roundBorders: roundCorners,
+      },
     });
   };
 
@@ -52,6 +57,18 @@ export default function RenderPanel() {
             checked={format === "png"}
           />
           &nbsp;png
+        </label>
+
+        <label>
+          <input
+            type="checkbox"
+            name="roundCorners"
+            onChange={(e) => {
+              setRoundCorners(e.target.checked);
+            }}
+            checked={roundCorners}
+          />
+          &nbsp;Закругленные края
         </label>
 
         <button onClick={onRenderStickerClick}>Скачать</button>

@@ -30,40 +30,40 @@ export default function KeyboardHandler() {
 
   const onKeyDown = useCallback(
     (event: KeyboardEvent) => {
-      switch (event.key.toLowerCase()) {
-        case "delete":
+      switch (event.code) {
+        case "Delete":
           runInUndoHistory(() => {
             removeMultiple(useWorkspaceStore.getState().selectedItems);
           });
           break;
-        case "c":
+        case "KeyC":
           if (event.ctrlKey) {
             console.log("Copying");
           }
           break;
-        case "x":
+        case "KeyX":
           if (event.ctrlKey) {
             console.log("Cutting");
           }
           break;
-        case "z":
+        case "KeyZ":
           if (event.ctrlKey) {
             undoLastAction();
           }
           break;
-        case "y":
+        case "KeyY":
           if (event.ctrlKey) {
             redoNextAction();
           }
           break;
-        case "a":
+        case "KeyA":
           if (event.target === document.body) {
             event.preventDefault();
             selectAll();
           }
 
           break;
-        case "escape":
+        case "Escape":
           selectNone();
           break;
         default:
