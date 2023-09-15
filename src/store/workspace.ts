@@ -82,7 +82,7 @@ export const useWorkspaceStore = createWithEqualityFn(
         settings: {
           stageWidth: STICKER_MAX_SIZE,
           stageHeight: STICKER_MAX_SIZE,
-          stageColor: "white",
+          stageColor: "rgba(255, 255, 255, 0)",
         } as StageSettings,
       },
 

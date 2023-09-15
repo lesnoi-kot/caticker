@@ -13,8 +13,6 @@
 .workspace__result-window {
   position: relative;
   overflow: hidden;
-  background-image: url('/src/assets/translucent.png');
-  background-size: 16px;
   border: 1px solid gray;
 
   --item-z-index: 2;

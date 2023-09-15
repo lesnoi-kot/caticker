@@ -143,6 +143,7 @@ const WorkspaceResultWindow = ({ children }: WorkspaceResultWindowProps) => {
         backgroundColor: settings.stageColor,
       }}
     >
+      <div className="absolute w-full h-full top-0 left-0 bg-checkered -z-50"></div>
       <WorkspaceContex.Provider value={workspaceHandlers}>
         {settings.stageHeight === STICKER_MAX_SIZE && (
           <ResizerDot
