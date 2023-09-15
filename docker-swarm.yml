@@ -12,6 +12,7 @@ services:
         - traefik.http.services.caticker-service.loadbalancer.server.port=80
 
         - traefik.http.routers.caticker.tls=true
+        - traefik.http.routers.caticker.tls.certresolver=letsEncryptResolver
         - traefik.http.routers.caticker.rule=Host(`caticker.rm-yuko.cloud`)
         - traefik.http.routers.caticker.entrypoints=websecure
 
@@ -19,5 +20,6 @@ services:
         - traefik.http.routers.insecure-caticker.entrypoints=web
         - traefik.http.routers.insecure-caticker.middlewares=force-https@file
 
+networks:
   traefik_area:
     external: true
