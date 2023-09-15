@@ -1,13 +1,12 @@
 import type { ItemGeometryInfo } from "../store/transforms";
-import {
-  FIGURE_BASE_SIZE,
-  FigureType,
+import type {
   WorkspaceAnyItem,
   WorkspaceFigure,
-  WorkspaceItemType,
   WorkspacePicture,
   WorkspaceText,
 } from "../store/workspace";
+import { FIGURE_BASE_SIZE } from "../constants";
+import { FigureType, WorkspaceItemType } from "../store/types";
 
 export type RenderStickerArguments = {
   width: number;

@@ -5,9 +5,7 @@ import {
   makeTextItem,
   makeFigureItem,
   useWorkspaceStore,
-  FigureType,
   useWorkspaceItems,
-  WorkspaceItemType,
   WorkspaceText,
   WorkspaceFigure,
   useSelectedItemIds,
@@ -19,6 +17,7 @@ import FigureEdit from "./FigureEdit";
 import RenderPanel from "./RenderPanel";
 import { useTransformStore } from "../store/transforms";
 import { runInUndoHistory } from "../store/undo";
+import { FigureType, WorkspaceItemType } from "../store/types";
 
 import "./Toolbar.css";
 

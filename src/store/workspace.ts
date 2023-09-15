@@ -4,12 +4,8 @@ import { immer } from "zustand/middleware/immer";
 import { createWithEqualityFn } from "zustand/traditional";
 import { shallow } from "zustand/shallow";
 import { useTransformStore } from "./transforms";
-
-export enum WorkspaceItemType {
-  Picture,
-  Text,
-  Figure,
-}
+import { STICKER_MAX_SIZE } from "../constants";
+import { FigureType, WorkspaceItemType } from "./types";
 
 export type BaseWorkspaceItem = {
   id: string;
@@ -31,11 +27,6 @@ export type WorkspacePicture = BaseWorkspaceItem & {
   type: WorkspaceItemType.Picture;
   file: File;
 };
-
-export enum FigureType {
-  Rect,
-  Circle,
-}
 
 export type WorkspaceFigure = BaseWorkspaceItem & {
   type: WorkspaceItemType.Figure;
@@ -80,9 +71,6 @@ type StageSettings = {
   stageHeight: number;
   stageColor: string;
 };
-
-export const STICKER_MAX_SIZE = 512;
-export const FIGURE_BASE_SIZE = 100;
 
 export const useWorkspaceStore = createWithEqualityFn(
   immer(

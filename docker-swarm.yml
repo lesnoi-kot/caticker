@@ -1,0 +1,23 @@
+version: "3"
+
+services:
+  versions:
+    image: yuko42/caticker:main
+    networks:
+      - traefik_area
+    deploy:
+      labels:
+        - traefik.enable=true
+        - traefik.docker.network=traefik_area
+        - traefik.http.services.caticker-service.loadbalancer.server.port=80
+
+        - traefik.http.routers.caticker.tls=true
+        - traefik.http.routers.caticker.rule=Host(`caticker.rm-yuko.cloud`)
+        - traefik.http.routers.caticker.entrypoints=websecure
+
+        - traefik.http.routers.insecure-caticker.rule=Host(`caticker.rm-yuko.cloud`)
+        - traefik.http.routers.insecure-caticker.entrypoints=web
+        - traefik.http.routers.insecure-caticker.middlewares=force-https@file
+
+  traefik_area:
+    external: true

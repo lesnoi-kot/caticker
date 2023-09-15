@@ -1,8 +1,6 @@
-import {
-  FIGURE_BASE_SIZE,
-  FigureType,
-  WorkspaceFigure,
-} from "../store/workspace";
+import { FIGURE_BASE_SIZE } from "../constants";
+import { FigureType } from "../store/types";
+import { WorkspaceFigure } from "../store/workspace";
 import type { ItemComponentInterface } from "./types";
 
 const classnameForFigure = {

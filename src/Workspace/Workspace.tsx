@@ -3,9 +3,7 @@ import { ReactNode, useCallback, useRef } from "react";
 import {
   useWorkspaceItemIds,
   useWorkspaceItem,
-  WorkspaceItemType,
   useWorkspaceStore,
-  STICKER_MAX_SIZE,
   WorkspaceFigure,
   WorkspacePicture,
   WorkspaceText,
@@ -21,6 +19,8 @@ import Figure from "./Figure";
 import AreaSelector from "./AreaSelector";
 import ResizerDot from "./ResizerDot";
 import { HistoryComparer, useUndoStore } from "../store/undo";
+import { STICKER_MAX_SIZE } from "../constants";
+import { WorkspaceItemType } from "../store/types";
 
 import "./Workspace.css";
 
