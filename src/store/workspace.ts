@@ -70,6 +70,7 @@ type StageSettings = {
   stageWidth: number;
   stageHeight: number;
   stageColor: string;
+  roundBorders: boolean;
 };
 
 export const useWorkspaceStore = createWithEqualityFn(
@@ -83,6 +84,7 @@ export const useWorkspaceStore = createWithEqualityFn(
           stageWidth: STICKER_MAX_SIZE,
           stageHeight: STICKER_MAX_SIZE,
           stageColor: "rgba(255, 255, 255, 0)",
+          roundBorders: true,
         } as StageSettings,
       },
 

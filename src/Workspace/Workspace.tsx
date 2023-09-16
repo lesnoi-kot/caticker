@@ -141,6 +141,7 @@ const WorkspaceResultWindow = ({ children }: WorkspaceResultWindowProps) => {
         width: `${settings.stageWidth}px`,
         height: `${settings.stageHeight}px`,
         backgroundColor: settings.stageColor,
+        borderRadius: settings.roundBorders ? "15px" : "unset",
       }}
     >
       <div className="absolute w-full h-full top-0 left-0 bg-checkered -z-50"></div>

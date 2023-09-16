@@ -60,6 +60,9 @@ function MainMenu() {
                   selectOne(pictureItem.id);
                 });
               }
+
+              // Reset file input to always trigger change event.
+              event.target.value = "";
             }}
             hidden
           />
@@ -180,6 +183,7 @@ function ItemMenu() {
         </button>
 
         <button
+          title="Оригинальный масштаб"
           onClick={() => {
             runInUndoHistory(() => {
               selectedItemIds.forEach((id) => {
@@ -188,27 +192,29 @@ function ItemMenu() {
             });
           }}
         >
-          Оригинальный масштаб
+          1x
         </button>
 
         <button
+          title="Слой вверх"
           onClick={() => {
             runInUndoHistory(() => {
               changeOrder("up");
             });
           }}
         >
-          Вверх ↥
+          ↥
         </button>
 
         <button
+          title="Слой вниз"
           onClick={() => {
             runInUndoHistory(() => {
               changeOrder("down");
             });
           }}
         >
-          Вниз ↧
+          ↧
         </button>
 
         <button

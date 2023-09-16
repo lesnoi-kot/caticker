@@ -3,6 +3,7 @@ import { RenderStickerArguments, renderSticker } from "./renderSticker";
 type ClientMessage = {
   type: "renderSticker";
   data: RenderStickerArguments;
+  extra: unknown;
 };
 
 self.onmessage = (message: MessageEvent<ClientMessage>) => {
@@ -10,7 +11,8 @@ self.onmessage = (message: MessageEvent<ClientMessage>) => {
     renderSticker(message.data.data).then((blob) => {
       self.postMessage({
         type: "stickerBLOB",
-        data: blob,
+        blob,
+        extra: message.data.extra,
       });
     });
   }
