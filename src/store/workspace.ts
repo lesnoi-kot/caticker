@@ -19,7 +19,8 @@ export type WorkspaceText = BaseWorkspaceItem & {
   color: string;
   fontFamily: string;
   fontSize: number;
-  strokeColor: string | null;
+  fontItalic: boolean;
+  strokeColor: string;
   strokeWidth: number;
 };
 
@@ -54,7 +55,8 @@ export const makeTextItem = (): WorkspaceText => ({
   color: "black",
   fontFamily: "system-ui",
   fontSize: 32,
-  strokeColor: null,
+  fontItalic: false,
+  strokeColor: "white",
   strokeWidth: 0,
 });
 

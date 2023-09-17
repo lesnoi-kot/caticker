@@ -79,22 +79,25 @@ export default function RenderPanel() {
           />
           &nbsp;png
         </label>
-
-        <label>
-          <input
-            type="checkbox"
-            name="roundCorners"
-            onChange={(e) => {
-              modifySettings({ roundBorders: e.target.checked });
-            }}
-            checked={roundBorders}
-          />
-          &nbsp;Закругленные края
-        </label>
-
-        <button onClick={onRenderStickerClick}>Превью</button>
-        <button onClick={onRenderDownloadClick}>Скачать</button>
       </div>
+
+      <label>
+        <input
+          type="checkbox"
+          name="roundCorners"
+          onChange={(e) => {
+            modifySettings({ roundBorders: e.target.checked });
+          }}
+          checked={roundBorders}
+        />
+        &nbsp;Закругленные края
+      </label>
+      <button onClick={onRenderStickerClick}>
+        Превью&nbsp;<kbd>q</kbd>
+      </button>
+      <button onClick={onRenderDownloadClick}>
+        Скачать&nbsp;<kbd>w</kbd>
+      </button>
     </div>
   );
 }

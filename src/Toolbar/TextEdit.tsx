@@ -2,7 +2,16 @@ import { WorkspaceText, useWorkspaceStore } from "../store/workspace";
 import { runInUndoHistory } from "../store/undo";
 import ColorPicker from "../HistoryAwareColorPicker";
 
-const FONT_INCREASE_SPEED = 7 / 100;
+const FONT_INCREASE_SPEED = 10 / 100;
+
+const fonts = [
+  "system-ui",
+  "Arial",
+  "Times New Roman",
+  "Georgia",
+  "Courier New",
+  "Lobster",
+];
 
 export default function TextEdit({ item }: { item: WorkspaceText }) {
   const upsert = useWorkspaceStore((store) => store.upsert);
@@ -32,46 +41,10 @@ export default function TextEdit({ item }: { item: WorkspaceText }) {
   };
 
   return (
-    <div className="toolbar__text-menu">
-      <button
-        onClick={() => {
-          increaseFontSize(1);
-        }}
-        title="Увеличить шрифт"
-      >
-        A+
-      </button>
+    <div className="flex items-start gap-12">
+      <div className="flex flex-col gap-4">
+        <p className="font-bold">Цвет текста</p>
 
-      <button
-        onClick={() => {
-          increaseFontSize(-1);
-        }}
-        title="Уменьшить шрифт"
-      >
-        A-
-      </button>
-
-      <label>
-        <p>Шрифт</p>
-        <select
-          name="text-font"
-          onChange={(e) => {
-            changeFont(e.target.value);
-          }}
-          value={item.fontFamily}
-        >
-          <option value="system-ui">Default</option>
-          <option value="Arial">Arial</option>
-          <option value="Verdana">Verdana</option>
-          <option value="Tahoma">Tahoma</option>
-          <option value="Times New Roman">Times New Roman</option>
-          <option value="Georgia">Georgia</option>
-          <option value="Courier New">Courier New</option>
-        </select>
-      </label>
-
-      <div>
-        <p>Цвет текста</p>
         <ColorPicker
           color={item.color}
           onChange={(color) => {
@@ -80,31 +53,89 @@ export default function TextEdit({ item }: { item: WorkspaceText }) {
         />
       </div>
 
-      <div>
-        <p>Цвет очертания</p>
+      <div className="flex flex-col gap-4">
+        <p className="font-bold">Шрифт</p>
+
+        <div className="flex flex-row items-center gap-2">
+          <button
+            onClick={() => {
+              increaseFontSize(1);
+            }}
+            title="Увеличить шрифт"
+          >
+            A+
+          </button>
+          <span className="font-mono">{item.fontSize}px</span>
+          <button
+            onClick={() => {
+              increaseFontSize(-1);
+            }}
+            title="Уменьшить шрифт"
+          >
+            A-
+          </button>
+        </div>
+
+        <label>
+          <input
+            type="checkbox"
+            name="fontItalic"
+            onChange={(e) => {
+              upsert({ ...item, fontItalic: e.target.checked });
+            }}
+            checked={item.fontItalic}
+          />
+          &nbsp;<i>Italic</i>
+        </label>
+
+        <fieldset className="flex flex-col gap-2">
+          {fonts.map((fontName) => (
+            <label key={fontName} style={{ fontFamily: fontName }}>
+              <input
+                onChange={(e) => {
+                  changeFont(e.target.value);
+                }}
+                type="radio"
+                name="font"
+                value={fontName}
+                checked={item.fontFamily === fontName}
+              />
+              &nbsp;{fontName}
+            </label>
+          ))}
+        </fieldset>
+      </div>
+
+      <div className="flex flex-col gap-4">
+        <p className="font-bold">Очертание</p>
+
+        <div className="flex flex-row items-center gap-2">
+          <button
+            title="Увеличить очертание"
+            onClick={() => {
+              increaseStrokeWidth(1);
+            }}
+          >
+            +
+          </button>
+          <span className="font-mono">{item.strokeWidth}px</span>
+          <button
+            title="Уменьшить очертание"
+            onClick={() => {
+              increaseStrokeWidth(-1);
+            }}
+          >
+            -
+          </button>
+        </div>
+
         <ColorPicker
-          color={item.strokeColor ?? undefined}
+          color={item.strokeColor}
           onChange={(color) => {
             upsert({ ...item, strokeColor: color });
           }}
         />
       </div>
-
-      <button
-        onClick={() => {
-          increaseStrokeWidth(1);
-        }}
-      >
-        Увеличить очертание
-      </button>
-
-      <button
-        onClick={() => {
-          increaseStrokeWidth(-1);
-        }}
-      >
-        Уменьшить очертание
-      </button>
     </div>
   );
 }

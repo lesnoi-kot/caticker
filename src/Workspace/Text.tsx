@@ -29,16 +29,15 @@ export default function Text({ item }: Props) {
       style={{
         fontSize: `${item.fontSize}px`,
         fontFamily: item.fontFamily,
+        fontStyle: item.fontItalic ? "italic" : "unset",
         color: item.color,
-        WebkitTextStrokeColor: item.strokeColor ?? "unset",
+        WebkitTextStrokeColor:
+          item.strokeWidth > 0 ? item.strokeColor : "unset",
         WebkitTextStrokeWidth: `${item.strokeWidth}px`,
       }}
       onDoubleClick={() => {
         setEditable(true);
       }}
-      // onKeyDown={(e) => {
-      //   e.stopPropagation();
-      // }}
       onBlur={(e) => {
         setEditable(false);
 

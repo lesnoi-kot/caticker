@@ -96,12 +96,20 @@ function renderText(
   args: RenderStickerArguments,
   item: WorkspaceText
 ) {
-  const { text, color, strokeColor, strokeWidth, fontFamily, fontSize } = item;
+  const {
+    text,
+    color,
+    strokeColor,
+    strokeWidth,
+    fontFamily,
+    fontSize,
+    fontItalic,
+  } = item;
 
-  ctx.strokeStyle = strokeColor ?? "black";
+  ctx.strokeStyle = strokeColor;
   ctx.lineWidth = strokeWidth;
   ctx.fillStyle = color;
-  ctx.font = `${fontSize}px ${fontFamily}`;
+  ctx.font = `${fontItalic ? "italic " : ""}${fontSize}px "${fontFamily}"`;
   ctx.textBaseline = "top";
   drawMultilineText(ctx, text, fontSize, strokeWidth);
 }

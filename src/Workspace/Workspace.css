@@ -7,7 +7,7 @@
 
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 1rem;
 }
 
 .workspace__result-window {
@@ -15,6 +15,7 @@
   overflow: hidden;
 
   --item-z-index: 2;
+  transition: border-radius .5s;
 }
 
 .workspace__result-selector {
@@ -24,16 +25,6 @@
   display: none;
   box-sizing: border-box;
   z-index: 3;
-}
-
-.workspace__result-coords {
-  position: absolute;
-  top: 0;
-  right: 0;
-  font-size: 1.2rem;
-  font-weight: bold;
-  color: black;
-  user-select: none;
 }
 
 .workspace__stage-item {
