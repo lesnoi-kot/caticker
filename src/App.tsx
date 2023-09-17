@@ -1,6 +1,8 @@
-import "./App.css";
+import Help from "./Help";
 import Toolbar from "./Toolbar/Toolbar";
 import Workspace from "./Workspace/Workspace";
+
+import "./App.css";
 
 function App() {
   return (
@@ -12,6 +14,7 @@ function App() {
         <Workspace />
         <Toolbar />
       </div>
+      <Help />
     </>
   );
 }
