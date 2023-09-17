@@ -5,16 +5,14 @@ export default function FigureEdit({ item }: { item: WorkspaceFigure }) {
   const upsert = useWorkspaceStore((store) => store.upsert);
 
   return (
-    <div className="toolbar__figure-menu">
-      <div>
-        <p>Цвет фигуры</p>
-        <ColorPicker
-          color={item.color}
-          onChange={(color) => {
-            upsert({ ...item, color });
-          }}
-        />
-      </div>
+    <div className="flex flex-col gap-4">
+      <p>Цвет фигуры</p>
+      <ColorPicker
+        color={item.color}
+        onChange={(color) => {
+          upsert({ ...item, color });
+        }}
+      />
     </div>
   );
 }
