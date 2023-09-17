@@ -19,3 +19,16 @@ export function getRelativeXY(
   const { x: containerX, y: containerY } = container.getBoundingClientRect();
   return new DOMPoint(event.clientX - containerX, event.clientY - containerY);
 }
+
+export function getDataURLOfBlob(blob: Blob): Promise<string> {
+  return new Promise((res, rej) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      res(String(reader.result ?? ""));
+    };
+    reader.onerror = () => {
+      rej("FileReader error occured");
+    };
+    reader.readAsDataURL(blob);
+  });
+}

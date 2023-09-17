@@ -2,8 +2,12 @@ import { useState } from "react";
 
 import { useWorkspaceStore } from "../store/workspace";
 import { useTransformStore } from "../store/transforms";
-import type { RenderStickerArguments } from "../renderer/renderSticker";
-import { worker } from "../renderer/worker";
+import {
+  renderSticker,
+  type RenderStickerArguments,
+} from "../renderer/renderSticker";
+import { getDataURLOfBlob } from "../utils/events";
+import { downloadURL, newWindow } from "../utils/popup";
 
 export type SupportedRenderFormat = "webp" | "png";
 
@@ -33,31 +37,23 @@ export default function RenderPanel() {
     };
   };
 
-  const onRenderStickerClick = () => {
-    worker.postMessage({
-      type: "renderSticker",
-      data: prepareRenderArgs(),
-      extra: {
-        operation: "preview",
-      },
-    });
+  const onRenderStickerClick = async () => {
+    const blob = await renderSticker(prepareRenderArgs());
+    const dataURL = await getDataURLOfBlob(blob);
+    newWindow(dataURL);
   };
 
   const onRenderDownloadClick = async () => {
-    worker.postMessage({
-      type: "renderSticker",
-      data: prepareRenderArgs(),
-      extra: {
-        operation: "download",
-      },
-    });
+    const blob = await renderSticker(prepareRenderArgs());
+    const dataURL = await getDataURLOfBlob(blob);
+    downloadURL(dataURL, `sticker.${format}`);
   };
 
   return (
-    <div>
-      <p>Рендер</p>
+    <div className="flex flex-col gap-4">
+      <p className="font-bold">Рендер</p>
 
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-row gap-2">
         <label>
           <input
             type="radio"
@@ -68,7 +64,6 @@ export default function RenderPanel() {
           />
           &nbsp;webp
         </label>
-
         <label>
           <input
             type="radio"
