@@ -213,7 +213,7 @@ export type WorkspaceState = ReturnType<typeof useWorkspaceStore.getState>;
 export const mergeWorkspaceState = (newState: WorkspaceState) =>
   useWorkspaceStore.setState(newState);
 
-export const useWorkspaceItemIds = () =>
+export const useWorkspaceItemIds = (): string[] =>
   useWorkspaceStore((state) =>
     Object.keys(state.stageItems).sort((a, b) => {
       return state.stageItems[a].layer - state.stageItems[b].layer;

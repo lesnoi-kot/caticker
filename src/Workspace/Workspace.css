@@ -12,7 +12,7 @@
 
 .workspace__result-window {
   position: relative;
-  overflow: hidden;
+  overflow: clip;
 
   --item-z-index: 2;
   transition: border-radius .5s;

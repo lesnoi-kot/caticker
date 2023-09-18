@@ -70,7 +70,7 @@ function useWorkspaceSelectTool() {
   const onMouseUp = useCallback(() => {
     selectorRef.current!.style.display = "none";
     document.removeEventListener("mousemove", onMouseMove);
-    window.getSelection()?.collapseToStart();
+    window.getSelection()?.removeAllRanges();
   }, [onMouseMove]);
 
   const onMouseDown = useCallback(

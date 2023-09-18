@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
 
-import { useWorkspaceStore } from "../store/workspace";
+import {
+  useWorkspaceItemIds,
+  useWorkspaceItems,
+  useWorkspaceStore,
+} from "../store/workspace";
 import { useTransformStore } from "../store/transforms";
 import {
   renderSticker,
@@ -17,20 +21,22 @@ export default function RenderPanel() {
     (store) => store.settings.roundBorders
   );
   const modifySettings = useWorkspaceStore((store) => store.modifySettings);
+  const sortedItemsIds = useWorkspaceItemIds();
+  const stageItems = useWorkspaceItems(sortedItemsIds);
 
   const onFormatChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormat(e.target.value as SupportedRenderFormat);
   };
 
   const prepareRenderArgs = (): RenderStickerArguments => {
-    const { settings, stageItems } = useWorkspaceStore.getState();
+    const { settings } = useWorkspaceStore.getState();
     const { items: transformItems } = useTransformStore.getState();
 
     return {
       width: settings.stageWidth,
       height: settings.stageHeight,
       backgroundColor: settings.stageColor,
-      workspaceItems: Object.values(stageItems),
+      workspaceItems: stageItems,
       transformItems,
       imageType: `image/${format}`,
       roundBorders,
@@ -68,7 +74,7 @@ export default function RenderPanel() {
     return () => {
       document.removeEventListener("keypress", onKeyPress);
     };
-  }, [format]);
+  });
 
   return (
     <div className="flex flex-col gap-4">

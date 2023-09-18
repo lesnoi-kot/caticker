@@ -192,6 +192,8 @@ export const useCreateWorkspaceRef = (): WorkspaceContexData => {
   const onItemRotateStart = useCallback(
     (itemId: string, event: MouseEvent) => {
       if (event.button === 0) {
+        window.getSelection()?.removeAllRanges();
+
         selectOne(itemId);
         onModificationStart();
         document.addEventListener("mousemove", onItemRotate);
@@ -204,9 +206,12 @@ export const useCreateWorkspaceRef = (): WorkspaceContexData => {
   const onItemResizeStart = useCallback(
     (itemId: string, type: ResizerType, event: MouseEvent) => {
       if (event.button === 0) {
+        window.getSelection()?.removeAllRanges();
+
         selectOne(itemId);
         resizeDirection.current = type;
         onModificationStart();
+
         document.addEventListener("mousemove", onItemResize);
         document.addEventListener("mouseup", onMouseUp, { once: true });
       }
