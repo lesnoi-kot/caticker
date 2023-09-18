@@ -1,4 +1,5 @@
 import { useCallback, useEffect } from "react";
+import { nanoid } from "nanoid";
 
 import {
   useWorkspaceStore,
@@ -11,6 +12,8 @@ import {
   runInUndoHistory,
   undoLastAction,
 } from "../store/undo";
+import { useClipboardStore } from "../store/clipboard";
+import { useTransformActions } from "../store/transforms";
 
 const supportedPasteFormats = [
   "image/png",
@@ -25,8 +28,16 @@ const isSupportedPasteData = (format: string) =>
 
 export default function KeyboardHandler() {
   const { workspaceRef } = useWorkspaceRef();
-  const { removeMultiple, selectNone, selectOne, selectAll, upsert } =
-    useWorkspaceStoreActions();
+  const {
+    removeMultiple,
+    selectNone,
+    selectOne,
+    selectAll,
+    selectMany,
+    upsert,
+  } = useWorkspaceStoreActions();
+  const { replace: replaceTransformItem } = useTransformActions();
+  const copyItems = useClipboardStore((store) => store.put);
 
   const onKeyDown = useCallback(
     (event: KeyboardEvent) => {
@@ -37,13 +48,38 @@ export default function KeyboardHandler() {
           });
           break;
         case "KeyC":
-          if (event.ctrlKey) {
-            console.log("Copying");
-          }
-          break;
         case "KeyX":
           if (event.ctrlKey) {
-            console.log("Cutting");
+            const selectedItems = useWorkspaceStore.getState().selectedItems;
+
+            if (selectedItems.size > 0) {
+              event.preventDefault();
+              copyItems(selectedItems);
+
+              if (event.code === "KeyX") {
+                runInUndoHistory(() => {
+                  removeMultiple(selectedItems);
+                });
+              }
+            }
+          }
+          break;
+        case "KeyV":
+          if (event.ctrlKey) {
+            runInUndoHistory(() => {
+              const newIds = [] as string[];
+
+              useClipboardStore
+                .getState()
+                .items.forEach(([item, transform]) => {
+                  const newId = nanoid();
+                  upsert({ ...item, id: newId });
+                  replaceTransformItem(newId, transform);
+                  newIds.push(newId);
+                });
+
+              selectMany(newIds);
+            });
           }
           break;
         case "KeyZ":
@@ -70,7 +106,15 @@ export default function KeyboardHandler() {
           break;
       }
     },
-    [removeMultiple, selectNone, selectAll]
+    [
+      removeMultiple,
+      selectNone,
+      selectAll,
+      copyItems,
+      selectMany,
+      replaceTransformItem,
+      upsert,
+    ]
   );
 
   const onPaste = useCallback(

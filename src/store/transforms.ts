@@ -202,9 +202,11 @@ export const useTransformActions = () => {
   const translate = useTransformStore((store) => store.translate);
   const translateTo = useTransformStore((store) => store.translateTo);
   const rotateToAround = useTransformStore((store) => store.rotateToAround);
+  const rotateAround = useTransformStore((store) => store.rotateAround);
   const scaleTo = useTransformStore((store) => store.scaleTo);
   const create = useTransformStore((store) => store.create);
   const resize = useTransformStore((store) => store.resize);
+  const replace = useTransformStore((store) => store.replace);
   const recalculatePolygonAndRotationPoint = useTransformStore(
     (store) => store.recalculatePolygonAndRotationPoint
   );
@@ -213,9 +215,11 @@ export const useTransformActions = () => {
     translate,
     translateTo,
     rotateToAround,
+    rotateAround,
     scaleTo,
     create,
     resize,
+    replace,
     recalculatePolygonAndRotationPoint,
   };
 };

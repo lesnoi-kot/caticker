@@ -1,22 +1,18 @@
 import {
-  useWorkspaceStore,
-  useWorkspaceItems,
   useSelectedItemIds,
+  useWorkspaceStoreActions,
 } from "../store/workspace";
 import { runInUndoHistory } from "../store/undo";
-import { useTransformStore } from "../store/transforms";
+import { useTransformActions } from "../store/transforms";
+import { useClipboardStore } from "../store/clipboard";
 
 export function SidebarMenu() {
   const selectedItemIds = useSelectedItemIds();
-  const selectedItems = useWorkspaceItems(selectedItemIds);
-  const layerUp = useWorkspaceStore((store) => store.layerUp);
-  const layerDown = useWorkspaceStore((store) => store.layerDown);
-  const removeMultiple = useWorkspaceStore((store) => store.removeMultiple);
-  const rotateAround = useTransformStore((store) => store.rotateAround);
-  const rotateToAround = useTransformStore((store) => store.rotateToAround);
-  const scaleTo = useTransformStore((store) => store.scaleTo);
+  const { layerUp, layerDown, removeMultiple } = useWorkspaceStoreActions();
+  const { rotateToAround, rotateAround, scaleTo } = useTransformActions();
+  const copyItems = useClipboardStore((store) => store.put);
 
-  if (selectedItems.length === 0) {
+  if (selectedItemIds.length === 0) {
     return null;
   }
 
@@ -108,7 +104,7 @@ export function SidebarMenu() {
       <button
         title="Скопировать"
         onClick={() => {
-          //
+          copyItems(selectedItemIds);
         }}
       >
         📋

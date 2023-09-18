@@ -243,4 +243,6 @@ export const useWorkspaceStoreActions = () =>
     selectNone: store.selectNone,
     selectAll: store.selectAll,
     modifySettings: store.modifySettings,
+    layerUp: store.layerUp,
+    layerDown: store.layerDown,
   }));
