@@ -11,6 +11,7 @@ import { SidebarMenu } from "./SidebarMenu";
 import Canvas from "./Canvas";
 
 import "./Workspace.css";
+import CatsPackDialog from "./CatsPackDialog";
 
 export default function Workspace() {
   return (
@@ -21,6 +22,7 @@ export default function Workspace() {
         <Items />
       </Canvas>
       <SidebarMenu />
+      <CatsPackDialog />
     </div>
   );
 }

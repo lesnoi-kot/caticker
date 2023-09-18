@@ -17,6 +17,7 @@ import FigureEdit from "./FigureEdit";
 import RenderPanel from "./RenderPanel";
 import { runInUndoHistory } from "../store/undo";
 import { FigureType, WorkspaceItemType } from "../store/types";
+import { catsPackDialogId } from "../Workspace/CatsPackDialog";
 
 export default function Toolbar() {
   return (
@@ -106,6 +107,16 @@ function MainMenu() {
           }}
         >
           Кружок
+        </button>
+        <button
+          title="Пак котов"
+          onClick={() => {
+            (
+              document.getElementById(catsPackDialogId) as HTMLDialogElement
+            ).showModal();
+          }}
+        >
+          🐈
         </button>
       </div>
     </div>

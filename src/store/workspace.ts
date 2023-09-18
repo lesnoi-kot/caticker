@@ -26,7 +26,7 @@ export type WorkspaceText = BaseWorkspaceItem & {
 
 export type WorkspacePicture = BaseWorkspaceItem & {
   type: WorkspaceItemType.Picture;
-  file: File;
+  file: Blob;
 };
 
 export type WorkspaceFigure = BaseWorkspaceItem & {
@@ -40,7 +40,7 @@ export type WorkspaceAnyItem =
   | WorkspacePicture
   | WorkspaceText;
 
-export const makePictureItem = (file: File): WorkspacePicture => ({
+export const makePictureItem = (file: Blob): WorkspacePicture => ({
   id: nanoid(),
   type: WorkspaceItemType.Picture,
   layer: 0,
