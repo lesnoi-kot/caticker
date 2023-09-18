@@ -13,13 +13,14 @@ export default function Text({ item }: Props) {
   const ref = useRef<HTMLPreElement>(null);
 
   useEffect(() => {
-    if (ref.current) {
+    if (editable && ref.current) {
       ref.current.focus();
     }
-  }, []);
+  }, [editable]);
 
   return (
     <pre
+      id={item.id}
       ref={ref}
       contentEditable={editable}
       suppressContentEditableWarning
@@ -35,9 +36,16 @@ export default function Text({ item }: Props) {
           item.strokeWidth > 0 ? item.strokeColor : "unset",
         WebkitTextStrokeWidth: `${item.strokeWidth}px`,
       }}
-      onDoubleClick={() => {
+      onClick={() => {
         setEditable(true);
       }}
+      onFocus={placeCaretToTheEnd}
+      onKeyDown={(event) => {
+        event.stopPropagation();
+        blurOnEscape(event);
+      }}
+      onKeyUp={stopPropagation}
+      onKeyPress={stopPropagation}
       onBlur={(e) => {
         setEditable(false);
 
@@ -58,4 +66,24 @@ export default function Text({ item }: Props) {
       {item.text}
     </pre>
   );
+}
+
+function placeCaretToTheEnd(event: React.FocusEvent<HTMLPreElement>) {
+  window.getSelection()?.selectAllChildren(event.target);
+}
+
+function blurOnEscape(e: React.KeyboardEvent<HTMLElement>) {
+  if (
+    e.key === "Escape" &&
+    "blur" in e.target &&
+    typeof e.target.blur === "function"
+  ) {
+    e.target.blur();
+    window.getSelection()?.removeAllRanges();
+    e.stopPropagation();
+  }
+}
+
+function stopPropagation(event: React.KeyboardEvent) {
+  event.stopPropagation();
 }

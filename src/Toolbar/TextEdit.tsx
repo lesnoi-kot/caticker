@@ -28,9 +28,9 @@ export default function TextEdit({ item }: { item: WorkspaceText }) {
     });
   };
 
-  const increaseStrokeWidth = (sign: number) => {
+  const increaseStrokeWidth = (delta: number) => {
     runInUndoHistory(() => {
-      upsert({ ...item, strokeWidth: Math.max(0, item.strokeWidth + sign) });
+      upsert({ ...item, strokeWidth: Math.max(0, item.strokeWidth + delta) });
     });
   };
 
@@ -56,14 +56,14 @@ export default function TextEdit({ item }: { item: WorkspaceText }) {
       <div className="flex flex-col gap-4">
         <p className="font-bold">Шрифт</p>
 
-        <div className="flex flex-row items-center gap-2">
+        <div className="flex flex-row items-center gap-3">
           <button
             onClick={() => {
               increaseFontSize(1);
             }}
             title="Увеличить шрифт"
           >
-            A+
+            +
           </button>
           <span className="font-mono">{item.fontSize}px</span>
           <button
@@ -72,7 +72,7 @@ export default function TextEdit({ item }: { item: WorkspaceText }) {
             }}
             title="Уменьшить шрифт"
           >
-            A-
+            -
           </button>
         </div>
 
@@ -109,11 +109,11 @@ export default function TextEdit({ item }: { item: WorkspaceText }) {
       <div className="flex flex-col gap-4">
         <p className="font-bold">Очертание</p>
 
-        <div className="flex flex-row items-center gap-2">
+        <div className="flex flex-row items-center gap-3">
           <button
             title="Увеличить очертание"
             onClick={() => {
-              increaseStrokeWidth(1);
+              increaseStrokeWidth(0.5);
             }}
           >
             +
@@ -122,7 +122,7 @@ export default function TextEdit({ item }: { item: WorkspaceText }) {
           <button
             title="Уменьшить очертание"
             onClick={() => {
-              increaseStrokeWidth(-1);
+              increaseStrokeWidth(-0.5);
             }}
           >
             -

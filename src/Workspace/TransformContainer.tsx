@@ -79,10 +79,13 @@ function TransformContainer({ id, children, canResize, canRotate }: Props) {
 
         onItemPress(id, event.nativeEvent);
       }}
+      onDoubleClick={() => {
+        // Emulate click on the inner element through double click on the container.
+        document.getElementById(id)?.click();
+      }}
     >
       <div
         ref={innerRef}
-        id={id}
         className={cn(
           "workspace__stage-item__inner",
           canResize && "workspace__stage-item__inner--absolute"

@@ -17,6 +17,7 @@ const figureSize = {
 function Figure({ item }: ItemComponentInterface<WorkspaceFigure>) {
   return (
     <div
+      id={item.id}
       className={classnameForFigure[item.figure] ?? ""}
       style={{ backgroundColor: item.color, ...figureSize }}
       draggable={false}

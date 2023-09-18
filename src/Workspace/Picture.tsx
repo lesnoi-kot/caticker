@@ -19,6 +19,7 @@ function Picture(props: Props) {
 
   return (
     <img
+      id={item.id}
       onLoad={(event) => {
         const img = event.target as HTMLImageElement;
 

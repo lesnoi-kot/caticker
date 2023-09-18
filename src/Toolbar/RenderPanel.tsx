@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { useWorkspaceStore } from "../store/workspace";
 import { useTransformStore } from "../store/transforms";
@@ -48,6 +48,27 @@ export default function RenderPanel() {
     const dataURL = await getDataURLOfBlob(blob);
     downloadURL(dataURL, `sticker.${format}`);
   };
+
+  useEffect(() => {
+    const onKeyPress = (event: KeyboardEvent) => {
+      switch (event.code) {
+        case "KeyQ":
+          onRenderStickerClick();
+          break;
+        case "KeyW":
+          onRenderDownloadClick();
+          break;
+        default:
+          break;
+      }
+    };
+
+    document.addEventListener("keypress", onKeyPress);
+
+    return () => {
+      document.removeEventListener("keypress", onKeyPress);
+    };
+  }, [format]);
 
   return (
     <div className="flex flex-col gap-4">
