@@ -6,7 +6,7 @@ export default function FigureEdit({ item }: { item: WorkspaceFigure }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <p>Цвет фигуры</p>
+      <p className="font-bold">Цвет фигуры</p>
       <ColorPicker
         color={item.color}
         onChange={(color) => {

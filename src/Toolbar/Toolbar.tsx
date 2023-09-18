@@ -18,8 +18,6 @@ import RenderPanel from "./RenderPanel";
 import { runInUndoHistory } from "../store/undo";
 import { FigureType, WorkspaceItemType } from "../store/types";
 
-import "./Toolbar.css";
-
 export default function Toolbar() {
   return (
     <div className="flex flex-col gap-8">

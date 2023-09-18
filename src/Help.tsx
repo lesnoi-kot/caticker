@@ -39,7 +39,7 @@ function Help() {
         </li>
       </ul>
 
-      <blockquote>
+      <blockquote className="text-[0.9em]">
         Tip: a transparent background, white stroke and black shadow effect will
         make your sticker stand out.
       </blockquote>
