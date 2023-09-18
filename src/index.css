@@ -7,28 +7,24 @@
   h3 {
     @apply text-3xl;
   }
+  a {
+    color: #00b7ff;
+    text-decoration: underline;
+  }
 }
 
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  font-family: system-ui, Helvetica, Arial, sans-serif;
-
-  color-scheme: light dark;
   color: hotpink;
-  background-color: #ffff98;
+  background: linear-gradient(0deg, rgba(255,255,255,1) 0%, rgba(255,255,152,1) 85%);
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   -webkit-text-size-adjust: 100%;
-}
-
-body {
-  padding: 1rem;
-  margin: 0;
 }
 
 button {
@@ -62,11 +58,6 @@ kbd {
   line-height: 1;
   padding: 2px 4px;
   white-space: nowrap;
-}
-
-a {
-  color: #00b7ff;
-  text-decoration: underline;
 }
 
 blockquote {

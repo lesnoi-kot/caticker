@@ -7,13 +7,17 @@ import "./App.css";
 function App() {
   return (
     <>
-      {/* <span id="titles1">сделай</span>
-      <span id="titles2">стикер</span>
-      <span id="titles3">с&nbsp;котами</span> */}
-      <div className="workspace-wrapper">
+      <header className="my-4">
+        <p>сделай</p>
+        <p>стикер</p>
+        <p>с&nbsp;котами</p>
+      </header>
+
+      <div className="flex flex-col gap-8">
         <Workspace />
         <Toolbar />
       </div>
+
       <Help />
     </>
   );

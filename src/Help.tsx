@@ -1,12 +1,7 @@
-import clippy from "./assets/clippy.webp";
-
 function Help() {
   return (
-    <div className="flex flex-col gap-4 mt-20 max-w-lg text-xl">
-      <h2>
-        Справка
-        <img className="inline-block ml-4 h-16" src={clippy} />
-      </h2>
+    <div className="mt-16 prose lg:prose-xl prose-a:text-blue-500">
+      <h2>Справка</h2>
       <p>
         Взято из{" "}
         <a
@@ -49,14 +44,14 @@ function Help() {
         <p>
           Once your stickers are ready, start a chat with the{" "}
           <a href="https://t.me/Stickers" target="_blank">
-            <code>@Stickers</code>
+            @Stickers
           </a>{" "}
           bot and send the command <code>/newpack</code>.
         </p>
         <p>
           For more info about using the{" "}
           <a href="https://t.me/Stickers" target="_blank">
-            <code>@Stickers</code>
+            @Stickers
           </a>{" "}
           bot, click{" "}
           <a
