@@ -7,10 +7,10 @@ import "./App.css";
 function App() {
   return (
     <>
-      <header className="my-4 max-w-fit">
-        <p className="w-fit rotate-[3deg] transform">сделай</p>
-        <p className="w-fit rotate-[-2deg] transform">стикер</p>
-        <p className="w-fit rotate-[1deg] transform">с&nbsp;котами</p>
+      <header className="my-6">
+        <p className="w-fit rotate-[3deg]">сделай</p>
+        <p className="w-fit rotate-[-2deg]">стикер</p>
+        <p className="w-fit rotate-[1deg]">с&nbsp;котами</p>
       </header>
 
       <div className="flex flex-col gap-8">
