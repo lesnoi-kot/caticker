@@ -1,6 +1,6 @@
 function Help() {
   return (
-    <div className="mt-16 prose lg:prose-xl prose-a:text-blue-500">
+    <div className="prose lg:prose-xl prose-a:text-blue-500">
       <h2>Справка</h2>
       <p>
         Взято из{" "}
