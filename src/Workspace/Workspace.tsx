@@ -9,9 +9,9 @@ import Figure from "./Figure";
 import AreaSelector from "./AreaSelector";
 import { SidebarMenu } from "./SidebarMenu";
 import Canvas from "./Canvas";
+import CatsPackDialog from "./CatsPackDialog";
 
 import "./Workspace.css";
-import CatsPackDialog from "./CatsPackDialog";
 
 export default function Workspace() {
   return (
@@ -62,6 +62,7 @@ function SwitchItem({ id }: { id: string }) {
         </TransformContainer>
       );
     default:
+      const assertNever: never = item;
       break;
   }
 

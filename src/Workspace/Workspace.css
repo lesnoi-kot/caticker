@@ -154,3 +154,13 @@
   margin-left: -20px;
   pointer-events: none;
 }
+
+.cursor-se-resize {
+  cursor: se-resize !important;
+}
+.cursor-s-resize {
+  cursor: s-resize !important;
+}
+.cursor-e-resize {
+  cursor: e-resize !important;
+}

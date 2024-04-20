@@ -8,12 +8,12 @@ import geometry from "@flatten-js/core";
 export type ItemGeometryInfo = {
   translate: { x: number; y: number };
   scale: { x: number; y: number };
-  rotationAround: DOMPoint;
+  rotationAround: { x: number; y: number };
   rotation: number;
-
-  transform: DOMMatrixReadOnly;
   unscaledWidth: number;
   unscaledHeight: number;
+
+  transform: DOMMatrixReadOnly;
   polygon: geometry.Polygon;
 };
 
@@ -41,7 +41,7 @@ export const useTransformStore = createWithEqualityFn(
               unscaledHeight: options?.height ?? 0,
               translate: { x: options?.x ?? 0, y: options?.y ?? 0 },
               rotation: 0,
-              rotationAround: new DOMPoint(0, 0),
+              rotationAround: { x: 0, y: 0 },
               scale: { x: 1, y: 1 },
               transform: new DOMMatrix(),
               polygon: new geometry.Polygon(),
@@ -84,10 +84,10 @@ export const useTransformStore = createWithEqualityFn(
             // Fix up the item for new position and rotation after rescaling.
             state.items[itemId].translate.x = center.x - scaledSize.x / 2;
             state.items[itemId].translate.y = center.y - scaledSize.y / 2;
-            state.items[itemId].rotationAround = new DOMPoint(
-              scaledSize.x / 2,
-              scaledSize.y / 2
-            );
+            state.items[itemId].rotationAround = {
+              x: scaledSize.x / 2,
+              y: scaledSize.y / 2,
+            };
 
             // Recalculate the polygon.
             const p1 = g.transform.transformPoint(new DOMPoint(0, 0));
@@ -133,7 +133,7 @@ export const useTransformStore = createWithEqualityFn(
             state.items[itemId].rotation += deg;
 
             if (p) {
-              state.items[itemId].rotationAround = p;
+              state.items[itemId].rotationAround = { x: p.x, y: p.y };
             }
           });
 
@@ -144,7 +144,7 @@ export const useTransformStore = createWithEqualityFn(
           set((state) => {
             state.items[itemId].rotation = deg;
             if (p) {
-              state.items[itemId].rotationAround = p;
+              state.items[itemId].rotationAround = { x: p.x, y: p.y };
             }
           });
 

@@ -6,7 +6,6 @@ import {
   makePictureItem,
   useWorkspaceStoreActions,
 } from "../store/workspace";
-import { useWorkspaceRef } from "./hooks";
 import {
   redoNextAction,
   runInUndoHistory,
@@ -27,7 +26,6 @@ const isSupportedPasteData = (format: string) =>
   supportedPasteFormats.includes(format);
 
 export default function KeyboardHandler() {
-  const { workspaceRef } = useWorkspaceRef();
   const {
     removeMultiple,
     selectNone,
@@ -35,6 +33,7 @@ export default function KeyboardHandler() {
     selectAll,
     selectMany,
     upsert,
+    layerUp,
   } = useWorkspaceStoreActions();
   const { replace: replaceTransformItem } = useTransformActions();
   const copyItems = useClipboardStore((store) => store.put);
@@ -75,10 +74,15 @@ export default function KeyboardHandler() {
                   const newId = nanoid();
                   upsert({ ...item, id: newId });
                   replaceTransformItem(newId, transform);
+                  layerUp(newId);
                   newIds.push(newId);
                 });
 
               selectMany(newIds);
+
+              if (newIds.length) {
+                event.preventDefault();
+              }
             });
           }
           break;
@@ -114,12 +118,13 @@ export default function KeyboardHandler() {
       selectMany,
       replaceTransformItem,
       upsert,
+      layerUp,
     ]
   );
 
   const onPaste = useCallback(
     (e: ClipboardEvent) => {
-      if (e.target !== workspaceRef.current || !e.clipboardData) {
+      if (!e.clipboardData) {
         return;
       }
 
@@ -130,7 +135,9 @@ export default function KeyboardHandler() {
           if (asFile) {
             runInUndoHistory(() => {
               const item = makePictureItem(asFile);
+
               upsert(item);
+              layerUp(item.id);
               selectOne(item.id);
             });
           }
@@ -138,7 +145,7 @@ export default function KeyboardHandler() {
         }
       }
     },
-    [upsert, selectOne, workspaceRef]
+    [upsert, selectOne, layerUp]
   );
 
   useEffect(() => {
