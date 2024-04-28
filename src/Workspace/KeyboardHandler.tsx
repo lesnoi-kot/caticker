@@ -19,7 +19,6 @@ const supportedPasteFormats = [
   "image/webp",
   "image/jpeg",
   "image/jpg",
-  "image/svg+xml",
 ];
 
 const isSupportedPasteData = (format: string) =>

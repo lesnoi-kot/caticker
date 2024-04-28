@@ -15,7 +15,7 @@ import "./Workspace.css";
 
 export default function Workspace() {
   return (
-    <div className="workspace">
+    <div className="flex items-center gap-4 relative min-h-[512px] min-w-[512px] w-full h-full">
       <Canvas>
         <KeyboardHandler />
         <AreaSelector />
@@ -61,9 +61,9 @@ function SwitchItem({ id }: { id: string }) {
           <Figure item={item} />
         </TransformContainer>
       );
-    default:
+    default: {
       const assertNever: never = item;
-      break;
+    }
   }
 
   return null;

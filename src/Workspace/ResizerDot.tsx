@@ -6,6 +6,7 @@ const classModifiers: Record<ResizerType, string> = {
   bottom: "b",
   right: "r",
   "bottom-right": "rb",
+  top: "t",
 };
 
 export default function ResizerDot({ position, ...rest }: Props) {

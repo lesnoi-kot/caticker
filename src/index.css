@@ -1,4 +1,6 @@
 @tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 @layer base {
   h2 {
@@ -13,13 +15,8 @@
   }
 }
 
-@tailwind components;
-@tailwind utilities;
-
 :root {
-  color: hotpink;
-  background: linear-gradient(0deg, rgba(255,255,255,1) 0%, rgba(255,255,152,1) 85%);
-
+  color-scheme: light dark;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;

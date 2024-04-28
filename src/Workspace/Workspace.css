@@ -1,21 +1,9 @@
-.workspace {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  min-height: 512px;
-  min-width: 512px;
-
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
 .workspace__result-window {
   position: relative;
   overflow: clip;
 
   --item-z-index: 2;
-  transition: border-radius .5s;
+  transition: border-radius 0.5s;
 }
 
 .workspace__result-selector {
@@ -129,6 +117,14 @@
   margin-right: var(--anchor-margin);
   margin-bottom: var(--anchor-margin);
   cursor: se-resize;
+}
+
+.workspace__stage-item__anchor--t {
+  right: 50%;
+  top: 0;
+  margin-right: var(--anchor-margin);
+  margin-top: var(--anchor-margin);
+  cursor: n-resize;
 }
 
 .workspace__stage-item__anchor-rotate {
