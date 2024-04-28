@@ -11,11 +11,11 @@ import { ResizerType } from "./types";
 import {
   getCenter,
   getGeometry,
-  getItemSize,
+  getItemSizeFromGeometry,
   useTransformActions,
 } from "../store/transforms";
 import { useWorkspaceStore } from "../store/workspace";
-import { degToRad, distance, getOrigin, radToDeg } from "../utils/math";
+import { degToRad, distance, radToDeg } from "../utils/math";
 import { getRelativeXY } from "../utils/events";
 import { HistoryComparer, useUndoStore } from "../store/undo";
 
@@ -81,7 +81,14 @@ export const useCreateWorkspaceRef = (): WorkspaceContexData => {
         getGeometry(selectedId);
       const mouse = getRelativeXY(workspaceRef.current, event);
       const rotationRad = degToRad(rotation);
-      const origin = getOrigin(transform);
+
+      const normalizedOrigin = getOriginOfResizer(resizeDirection.current);
+      const origin = transform.transformPoint(
+        new DOMMatrixReadOnly()
+          .scale(unscaledWidth, unscaledHeight)
+          .transformPoint(normalizedOrigin)
+      );
+
       const distToOrigin = distance(mouse, origin);
       const angleToOrigin = Math.atan2(mouse.y - origin.y, mouse.x - origin.x);
 
@@ -90,7 +97,8 @@ export const useCreateWorkspaceRef = (): WorkspaceContexData => {
           selectedId,
           (distToOrigin * Math.cos(angleToOrigin - rotationRad)) /
             unscaledWidth,
-          null
+          null,
+          normalizedOrigin
         );
       }
 
@@ -99,7 +107,25 @@ export const useCreateWorkspaceRef = (): WorkspaceContexData => {
           selectedId,
           null,
           (distToOrigin * Math.sin(angleToOrigin - rotationRad)) /
-            unscaledHeight
+            unscaledHeight,
+          normalizedOrigin
+        );
+      }
+
+      if (resizeDirection.current.includes("top")) {
+        const newScale =
+          (distToOrigin * Math.cos(angleToOrigin - rotationRad + Math.PI / 2)) /
+          unscaledHeight;
+        scaleTo(selectedId, null, newScale, normalizedOrigin);
+      }
+
+      if (resizeDirection.current.includes("left")) {
+        scaleTo(
+          selectedId,
+          (distToOrigin * Math.cos(angleToOrigin - rotationRad + Math.PI)) /
+            unscaledWidth,
+          null,
+          normalizedOrigin
         );
       }
     },
@@ -121,7 +147,7 @@ export const useCreateWorkspaceRef = (): WorkspaceContexData => {
       const g = getGeometry(selectedId);
       const { scale } = g;
       const center = getCenter(g);
-      const scaledSize = getItemSize(g);
+      const scaledSize = getItemSizeFromGeometry(g);
       const mouse = getRelativeXY(workspaceRef.current, event);
 
       const newRotation =
@@ -231,3 +257,26 @@ export const useCreateWorkspaceRef = (): WorkspaceContexData => {
 
   return handlers;
 };
+
+function getOriginOfResizer(resizerType: ResizerType): DOMPointReadOnly {
+  switch (resizerType) {
+    case "top-left":
+      return new DOMPointReadOnly(1, 1);
+    case "top":
+      return new DOMPointReadOnly(0, 1);
+    case "top-right":
+      return new DOMPointReadOnly(0, 1);
+    case "right":
+      return new DOMPointReadOnly(0, 0);
+    case "bottom-right":
+      return new DOMPointReadOnly(0, 0);
+    case "bottom":
+      return new DOMPointReadOnly(0, 0);
+    case "bottom-left":
+      return new DOMPointReadOnly(1, 0);
+    case "left":
+      return new DOMPointReadOnly(1, 0);
+    default:
+      throw new Error("Unexpected resizer type");
+  }
+}

@@ -95,7 +95,31 @@
   background-color: cornflowerblue;
 }
 
-.workspace__stage-item__anchor--r {
+.workspace__stage-item__anchor--top-left {
+  left: 0;
+  top: 0;
+  margin-left: var(--anchor-margin);
+  margin-top: var(--anchor-margin);
+  cursor: nw-resize;
+}
+
+.workspace__stage-item__anchor--top {
+  right: 50%;
+  top: 0;
+  margin-right: var(--anchor-margin);
+  margin-top: var(--anchor-margin);
+  cursor: n-resize;
+}
+
+.workspace__stage-item__anchor--top-right {
+  right: 0;
+  top: 0;
+  margin-right: var(--anchor-margin);
+  margin-top: var(--anchor-margin);
+  cursor: ne-resize;
+}
+
+.workspace__stage-item__anchor--right {
   right: 0;
   top: 50%;
   margin-right: var(--anchor-margin);
@@ -103,15 +127,7 @@
   cursor: e-resize;
 }
 
-.workspace__stage-item__anchor--b {
-  left: 50%;
-  bottom: 0;
-  margin-bottom: var(--anchor-margin);
-  margin-left: var(--anchor-margin);
-  cursor: s-resize;
-}
-
-.workspace__stage-item__anchor--rb {
+.workspace__stage-item__anchor--bottom-right {
   right: 0;
   bottom: 0;
   margin-right: var(--anchor-margin);
@@ -119,12 +135,28 @@
   cursor: se-resize;
 }
 
-.workspace__stage-item__anchor--t {
-  right: 50%;
-  top: 0;
-  margin-right: var(--anchor-margin);
+.workspace__stage-item__anchor--bottom {
+  left: 50%;
+  bottom: 0;
+  margin-bottom: var(--anchor-margin);
+  margin-left: var(--anchor-margin);
+  cursor: s-resize;
+}
+
+.workspace__stage-item__anchor--bottom-left {
+  left: 0;
+  bottom: 0;
+  margin-bottom: var(--anchor-margin);
+  margin-left: var(--anchor-margin);
+  cursor: sw-resize;
+}
+
+.workspace__stage-item__anchor--left {
+  left: 0;
+  top: 50%;
+  margin-left: var(--anchor-margin);
   margin-top: var(--anchor-margin);
-  cursor: n-resize;
+  cursor: w-resize;
 }
 
 .workspace__stage-item__anchor-rotate {
@@ -134,7 +166,7 @@
   margin-right: -30px;
   margin-top: var(--anchor-margin);
   color: cornflowerblue;
-  cursor: grab;
+  cursor: crosshair;
   user-select: none;
 }
 
@@ -149,14 +181,4 @@
   padding: 4px 0;
   margin-left: -20px;
   pointer-events: none;
-}
-
-.cursor-se-resize {
-  cursor: se-resize !important;
-}
-.cursor-s-resize {
-  cursor: s-resize !important;
-}
-.cursor-e-resize {
-  cursor: e-resize !important;
 }

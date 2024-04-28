@@ -5,7 +5,7 @@ import { useIsItemSelected } from "../store/workspace";
 import {
   ItemGeometryInfo,
   getGeometry,
-  getItemSize,
+  getItemSizeFromGeometry,
   useTransformActions,
   useTransformStore,
 } from "../store/transforms";
@@ -142,7 +142,7 @@ function setSelectionTransformStyle(
     .multiplySelf(transform)
     .multiplySelf(new DOMMatrix().scaleSelf(scale.x, scale.y).inverse());
 
-  const scaledSize = getItemSize(geometry);
+  const scaledSize = getItemSizeFromGeometry(geometry);
 
   if (scaledSize.x < 0) {
     unscaledTransform.scaleSelf(-1, 1);

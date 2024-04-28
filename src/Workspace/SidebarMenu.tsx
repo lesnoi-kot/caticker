@@ -3,7 +3,7 @@ import {
   useWorkspaceStoreActions,
 } from "../store/workspace";
 import { runInUndoHistory } from "../store/undo";
-import { useTransformActions } from "../store/transforms";
+import { getItemSize, useTransformActions } from "../store/transforms";
 import { useClipboardStore } from "../store/clipboard";
 
 export function SidebarMenu() {
@@ -33,8 +33,13 @@ export function SidebarMenu() {
       <button
         onClick={() => {
           runInUndoHistory(() => {
-            selectedItemIds.forEach((id) => {
-              rotateAround(id, -90);
+            selectedItemIds.forEach((itemId) => {
+              const scaledSize = getItemSize(itemId);
+              rotateAround(
+                itemId,
+                -90,
+                new DOMPointReadOnly(scaledSize.x / 2, scaledSize.y / 2)
+              );
             });
           });
         }}

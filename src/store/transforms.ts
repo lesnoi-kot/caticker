@@ -79,7 +79,7 @@ export const useTransformStore = createWithEqualityFn(
           set((state) => {
             const g = state.items[itemId];
             const center = getCenter(g);
-            const scaledSize = getItemSize(g);
+            const scaledSize = getItemSizeFromGeometry(g);
 
             // Fix up the item for new position and rotation after rescaling.
             state.items[itemId].translate.x = center.x - scaledSize.x / 2;
@@ -151,14 +151,35 @@ export const useTransformStore = createWithEqualityFn(
           useTransformStore.getState().recalculateTransformMatrix(itemId);
         },
 
-        scaleTo: (itemId: string, x: number | null, y: number | null) => {
+        scaleTo: (
+          itemId: string,
+          x: number | null,
+          y: number | null,
+          origin: DOMPoint = new DOMPoint(0, 0)
+        ) => {
           set((state) => {
-            if (x) {
-              state.items[itemId].scale.x = x;
-            }
-            if (y) {
-              state.items[itemId].scale.y = y;
-            }
+            const item = state.items[itemId];
+            const newScaleX = x ?? item.scale.x;
+            const newScaleY = y ?? item.scale.y;
+
+            const m = new DOMMatrixReadOnly()
+              .translate(item.translate.x, item.translate.y)
+              .rotate(item.rotation)
+              .translate(
+                origin.x * item.unscaledWidth * item.scale.x,
+                origin.y * item.unscaledHeight * item.scale.y
+              )
+              .scale(newScaleX, newScaleY)
+              .translate(
+                -origin.x * item.unscaledWidth,
+                -origin.y * item.unscaledHeight
+              );
+            const p = m.transformPoint(new DOMPoint(0, 0));
+
+            item.scale.x = newScaleX;
+            item.scale.y = newScaleY;
+            item.translate.x = p.x;
+            item.translate.y = p.y;
           });
 
           useTransformStore.getState().recalculateTransformMatrix(itemId);
@@ -238,9 +259,16 @@ export function getCenter(
   );
 }
 
-export function getItemSize(
+export function getItemSizeFromGeometry(
   g: ItemGeometryInfo | Draft<ItemGeometryInfo>
-): DOMPoint {
+): DOMPointReadOnly {
   const { scale, unscaledWidth, unscaledHeight } = g;
-  return new DOMPoint(unscaledWidth * scale.x, unscaledHeight * scale.y);
+  return new DOMPointReadOnly(
+    unscaledWidth * scale.x,
+    unscaledHeight * scale.y
+  );
+}
+
+export function getItemSize(itemId: string): DOMPointReadOnly {
+  return getItemSizeFromGeometry(getGeometry(itemId));
 }
