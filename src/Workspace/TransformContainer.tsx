@@ -1,51 +1,20 @@
-import { ReactNode, useCallback, useEffect, useRef } from "react";
-import cn from "classnames";
+import { useEffect, useRef, memo, PropsWithChildren } from "react";
 
-import { useIsItemSelected } from "../store/workspace";
-import {
-  ItemGeometryInfo,
-  getGeometry,
-  getItemSizeFromGeometry,
-  useTransformActions,
-  useTransformStore,
-} from "../store/transforms";
+import { useTransformActions, useTransformStore } from "@/store/transforms";
+
 import { useWorkspaceRef } from "./hooks";
-import ResizerDot from "./ResizerDot";
-import { RESIZER_TYPES } from "./types";
-import RotatorHandle from "./RotatorHandle";
 
-type Props = {
+type Props = PropsWithChildren & {
   id: string;
-  canResize?: boolean;
-  canRotate?: boolean;
-  children: ReactNode;
 };
 
-function TransformContainer({ id, children, canResize, canRotate }: Props) {
-  const { onItemPress, onItemResizeStart, onItemRotateStart } =
-    useWorkspaceRef();
-  const isSelected = useIsItemSelected(id);
+function TransformContainer({ id, children }: Props) {
+  const { onItemPress } = useWorkspaceRef();
   const { resize } = useTransformActions();
 
-  const innerRef = useRef<HTMLDivElement | null>(null);
-  const selectionRef = useRef<HTMLDivElement>(null);
+  const innerRef = useRef<HTMLDivElement>(null);
 
-  const updateTransformStyle = useCallback(() => {
-    const geometry = getGeometry(id);
-
-    if (!geometry) {
-      return;
-    }
-
-    if (innerRef.current) {
-      innerRef.current.style.transform = geometry.transform.toString();
-    }
-
-    if (selectionRef.current) {
-      setSelectionTransformStyle(geometry, selectionRef.current);
-    }
-  }, [id]);
-
+  // If the inner HTML element changed in natural size (e.g. image loaded), update size info.
   useEffect(() => {
     const resizeObserver = new ResizeObserver((entries) => {
       const innerElSize = entries[0].borderBoxSize;
@@ -59,106 +28,35 @@ function TransformContainer({ id, children, canResize, canRotate }: Props) {
     return () => {
       resizeObserver.disconnect();
     };
-  }, [id, resize, updateTransformStyle]);
+  }, [id, resize]);
 
+  // Update the "transform" style property according to the data in the state.
   useEffect(() => {
     return useTransformStore.subscribe((state, prevState) => {
       if (state.items[id] !== prevState.items[id]) {
-        updateTransformStyle();
+        const geometry = state.items[id];
+
+        if (geometry && innerRef.current) {
+          innerRef.current.style.transform = geometry.transform.toString();
+        }
       }
     });
-  }, [id, updateTransformStyle]);
+  }, [id]);
 
   return (
     <div
-      className="workspace__stage-item"
-      id={`container-${id}`}
-      draggable={false}
+      ref={innerRef}
+      className="absolute origin-top-left"
       onMouseDown={(event) => {
         event.stopPropagation();
 
         onItemPress(id, event.nativeEvent);
       }}
-      onDoubleClick={() => {
-        // Emulate click on the inner element through double click on the container.
-        document.getElementById(id)?.click();
-      }}
+      draggable={false}
     >
-      <div
-        ref={innerRef}
-        className={cn(
-          "workspace__stage-item__inner",
-          canResize && "workspace__stage-item__inner--absolute"
-        )}
-        draggable={false}
-      >
-        {children}
-      </div>
-
-      <div
-        ref={selectionRef}
-        draggable={false}
-        className={cn(
-          "workspace__stage-item__selection",
-          !canResize && "workspace__stage-item__selection--auto",
-          isSelected && "workspace__stage-item--selected"
-        )}
-      >
-        {isSelected && canRotate && (
-          <RotatorHandle
-            onMouseDown={(event) => {
-              event.stopPropagation();
-
-              onItemRotateStart(id, event.nativeEvent);
-            }}
-          />
-        )}
-
-        {isSelected &&
-          canResize &&
-          RESIZER_TYPES.map((resizeType) => (
-            <ResizerDot
-              key={resizeType}
-              position={resizeType}
-              onMouseDown={(event) => {
-                event.stopPropagation();
-
-                onItemResizeStart(id, resizeType, event.nativeEvent);
-              }}
-            />
-          ))}
-      </div>
+      {children}
     </div>
   );
 }
 
-function setSelectionTransformStyle(
-  geometry: ItemGeometryInfo,
-  el: HTMLDivElement
-) {
-  const { transform, scale } = geometry;
-
-  const unscaledTransform = new DOMMatrix()
-    .multiplySelf(transform)
-    .multiplySelf(new DOMMatrix().scaleSelf(scale.x, scale.y).inverse());
-
-  const scaledSize = getItemSizeFromGeometry(geometry);
-
-  if (scaledSize.x < 0) {
-    unscaledTransform.scaleSelf(-1, 1);
-  }
-  if (scaledSize.y < 0) {
-    unscaledTransform.scaleSelf(1, -1);
-  }
-
-  el.setAttribute(
-    "style",
-    `
-      width: ${Math.abs(scaledSize.x)}px;
-      height: ${Math.abs(scaledSize.y)}px;
-      transform: ${unscaledTransform};
-    `
-  );
-}
-
-export default TransformContainer;
+export default memo(TransformContainer);

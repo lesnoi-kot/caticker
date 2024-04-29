@@ -11,7 +11,6 @@ import { ResizerType } from "./types";
 import {
   getCenter,
   getGeometry,
-  getItemSizeFromGeometry,
   useTransformActions,
 } from "../store/transforms";
 import { useWorkspaceStore } from "../store/workspace";

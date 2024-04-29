@@ -10,6 +10,7 @@ import AreaSelector from "./AreaSelector";
 import { SidebarMenu } from "./SidebarMenu";
 import Canvas from "./Canvas";
 import CatsPackDialog from "./CatsPackDialog";
+import { Selection } from "./Selection";
 
 import "./Workspace.css";
 
@@ -20,6 +21,7 @@ export default function Workspace() {
         <KeyboardHandler />
         <AreaSelector />
         <Items />
+        <Selection />
       </Canvas>
       <SidebarMenu />
       <CatsPackDialog />
@@ -33,7 +35,9 @@ function Items() {
   return (
     <>
       {itemIds.map((id) => (
-        <SwitchItem key={id} id={id} />
+        <TransformContainer key={id} id={id}>
+          <SwitchItem id={id} />
+        </TransformContainer>
       ))}
     </>
   );
@@ -44,27 +48,12 @@ function SwitchItem({ id }: { id: string }) {
 
   switch (item.type) {
     case WorkspaceItemType.Picture:
-      return (
-        <TransformContainer id={id} canResize canRotate>
-          <Picture item={item} />
-        </TransformContainer>
-      );
+      return <Picture item={item} />;
     case WorkspaceItemType.Text:
-      return (
-        <TransformContainer id={id} canResize canRotate>
-          <Text item={item} />
-        </TransformContainer>
-      );
+      return <Text item={item} />;
     case WorkspaceItemType.Figure:
-      return (
-        <TransformContainer id={id} canResize canRotate>
-          <Figure item={item} />
-        </TransformContainer>
-      );
-    default: {
-      const assertNever: never = item;
-    }
+      return <Figure item={item} />;
+    default:
+      return null;
   }
-
-  return null;
 }
