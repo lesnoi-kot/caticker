@@ -147,18 +147,13 @@ export const useCreateWorkspaceRef = (): WorkspaceContexData => {
       const g = getGeometry(selectedId);
       const { scale } = g;
       const center = getCenter(g);
-      const scaledSize = getItemSizeFromGeometry(g);
       const mouse = getRelativeXY(workspaceRef.current, event);
 
       const newRotation =
         Math.atan2(mouse.y - center.y, mouse.x - center.x) -
         (scale.x < 0 ? -Math.PI : 0);
 
-      rotateToAround(
-        selectedId,
-        radToDeg(newRotation),
-        new DOMPoint(scaledSize.x / 2, scaledSize.y / 2)
-      );
+      rotateToAround(selectedId, radToDeg(newRotation));
     },
     [rotateToAround]
   );

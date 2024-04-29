@@ -1,15 +1,15 @@
 import {
   useSelectedItemIds,
   useWorkspaceStoreActions,
-} from "../store/workspace";
-import { runInUndoHistory } from "../store/undo";
-import { getItemSize, useTransformActions } from "../store/transforms";
-import { useClipboardStore } from "../store/clipboard";
+} from "@/store/workspace";
+import { runInUndoHistory } from "@/store/undo";
+import { useTransformActions } from "@/store/transforms";
+import { useClipboardStore } from "@/store/clipboard";
 
 export function SidebarMenu() {
   const selectedItemIds = useSelectedItemIds();
   const { layerUp, layerDown, removeMultiple } = useWorkspaceStoreActions();
-  const { rotateToAround, rotateAround, scaleTo } = useTransformActions();
+  const { rotateToAround, scaleTo } = useTransformActions();
   const copyItems = useClipboardStore((store) => store.put);
 
   if (selectedItemIds.length === 0) {
@@ -33,23 +33,6 @@ export function SidebarMenu() {
       <button
         onClick={() => {
           runInUndoHistory(() => {
-            selectedItemIds.forEach((itemId) => {
-              const scaledSize = getItemSize(itemId);
-              rotateAround(
-                itemId,
-                -90,
-                new DOMPointReadOnly(scaledSize.x / 2, scaledSize.y / 2)
-              );
-            });
-          });
-        }}
-      >
-        +90°
-      </button>
-
-      <button
-        onClick={() => {
-          runInUndoHistory(() => {
             selectedItemIds.forEach((id) => {
               rotateToAround(id, 0);
             });
@@ -57,18 +40,6 @@ export function SidebarMenu() {
         }}
       >
         0°
-      </button>
-
-      <button
-        onClick={() => {
-          runInUndoHistory(() => {
-            selectedItemIds.forEach((id) => {
-              rotateAround(id, 90);
-            });
-          });
-        }}
-      >
-        -90°
       </button>
 
       <button
