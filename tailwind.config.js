@@ -1,4 +1,5 @@
 import typography from "@tailwindcss/typography";
+import daisyui from "daisyui";
 
 /** @type {import('tailwindcss').Config} */
 export default {
@@ -7,8 +8,19 @@ export default {
     extend: {
       backgroundImage: {
         checkered: "url(/src/assets/pattern.png)",
+        checkeredDark: "url(/src/assets/pattern-dark.png)",
       },
     },
   },
-  plugins: [typography],
+  plugins: [typography, daisyui],
+  daisyui: {
+    themes: false,
+    darkTheme: "dark",
+    base: false,
+    styled: true,
+    utils: true,
+    prefix: "",
+    logs: true,
+    themeRoot: ":root",
+  },
 };

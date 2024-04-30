@@ -1,4 +1,11 @@
 import {
+  TrashIcon,
+  ArrowUpOnSquareStackIcon,
+  ArrowDownOnSquareStackIcon,
+  DocumentDuplicateIcon,
+} from "@heroicons/react/24/solid";
+
+import {
   useSelectedItemIds,
   useWorkspaceStoreActions,
 } from "@/store/workspace";
@@ -31,6 +38,7 @@ export function SidebarMenu() {
   return (
     <div className="flex flex-col gap-2">
       <button
+        className="btn"
         onClick={() => {
           runInUndoHistory(() => {
             selectedItemIds.forEach((id) => {
@@ -43,6 +51,7 @@ export function SidebarMenu() {
       </button>
 
       <button
+        className="btn"
         title="Оригинальный масштаб"
         onClick={() => {
           runInUndoHistory(() => {
@@ -56,6 +65,7 @@ export function SidebarMenu() {
       </button>
 
       <button
+        className="btn"
         title="Слой вверх"
         onClick={() => {
           runInUndoHistory(() => {
@@ -63,10 +73,11 @@ export function SidebarMenu() {
           });
         }}
       >
-        ↥
+        <ArrowUpOnSquareStackIcon />
       </button>
 
       <button
+        className="btn"
         title="Слой вниз"
         onClick={() => {
           runInUndoHistory(() => {
@@ -74,28 +85,29 @@ export function SidebarMenu() {
           });
         }}
       >
-        ↧
+        <ArrowDownOnSquareStackIcon />
       </button>
 
       <button
+        className="btn"
         title="Скопировать"
         onClick={() => {
           copyItems(selectedItemIds);
         }}
       >
-        📋
+        <DocumentDuplicateIcon />
       </button>
 
       <button
+        className="btn"
         title="Удалить"
         onClick={() => {
           runInUndoHistory(() => {
             removeMultiple(selectedItemIds);
           });
         }}
-        className="text-3xl"
       >
-        ␡
+        <TrashIcon />
       </button>
     </div>
   );

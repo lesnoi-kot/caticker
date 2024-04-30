@@ -81,44 +81,48 @@ export default function RenderPanel() {
       <p className="font-bold">Рендер</p>
 
       <div className="flex flex-row gap-2">
-        <label>
+        <label className="label cursor-pointer">
           <input
             type="radio"
             name="renderFormat"
             value="webp"
             onChange={onFormatChange}
             checked={format === "webp"}
+            className="radio"
           />
-          &nbsp;webp
+          &nbsp;<span className="label-text">webp</span>
         </label>
-        <label>
+
+        <label className="label cursor-pointer">
           <input
             type="radio"
             name="renderFormat"
             value="png"
             onChange={onFormatChange}
             checked={format === "png"}
+            className="radio"
           />
-          &nbsp;png
+          &nbsp;<span className="label-text">png</span>
         </label>
       </div>
 
-      <label>
+      <label className="label cursor-pointer">
         <input
           type="checkbox"
           name="roundCorners"
           onChange={(e) => {
             modifySettings({ roundBorders: e.target.checked });
           }}
+          className="toggle"
           checked={roundBorders}
         />
-        &nbsp;Закругленные края
+        &nbsp;<span className="label-text">Закругленные края</span>
       </label>
-      <button onClick={onRenderStickerClick}>
-        Превью&nbsp;<kbd>q</kbd>
+      <button onClick={onRenderStickerClick} className="btn">
+        Превью&nbsp;<kbd className="kbd">q</kbd>
       </button>
-      <button onClick={onRenderDownloadClick}>
-        Скачать&nbsp;<kbd>w</kbd>
+      <button onClick={onRenderDownloadClick} className="btn">
+        Скачать&nbsp;<kbd className="kbd">w</kbd>
       </button>
     </div>
   );

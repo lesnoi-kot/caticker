@@ -76,7 +76,7 @@
 }
 
 .workspace__stage-figure--rect {
-  border: 1px solid black;
+  border: 2px solid black;
 }
 .workspace__stage-figure--circle {
   border-radius: 50%;

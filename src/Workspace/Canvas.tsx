@@ -81,7 +81,7 @@ function Canvas({ children }: { children: ReactNode }) {
         borderRadius: settings.roundBorders ? "15px" : "unset",
       }}
     >
-      <div className="absolute w-full h-full top-0 left-0 bg-checkered -z-50"></div>
+      <div className="absolute w-full h-full top-0 left-0 bg-checkered dark:bg-checkeredDark -z-50"></div>
       <WorkspaceContex.Provider value={workspaceHandlers}>
         {settings.stageHeight === STICKER_MAX_SIZE && (
           <ResizerDot

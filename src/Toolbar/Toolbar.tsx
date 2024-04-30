@@ -1,5 +1,6 @@
 import { useRef } from "react";
 
+import { FigureType, WorkspaceItemType } from "@/store/types";
 import {
   makePictureItem,
   makeTextItem,
@@ -10,14 +11,16 @@ import {
   WorkspaceFigure,
   useSelectedItemIds,
   useWorkspaceStoreActions,
-} from "../store/workspace";
+} from "@/store/workspace";
+import { catsPackDialogId } from "@/Workspace/CatsPackDialog";
+
+import catEmoji from "@/assets/cats/emoji.png";
+
 import ColorPicker from "../HistoryAwareColorPicker";
 import TextEdit from "./TextEdit";
 import FigureEdit from "./FigureEdit";
 import RenderPanel from "./RenderPanel";
 import { runInUndoHistory } from "../store/undo";
-import { FigureType, WorkspaceItemType } from "../store/types";
-import { catsPackDialogId } from "../Workspace/CatsPackDialog";
 
 export default function Toolbar() {
   return (
@@ -40,7 +43,7 @@ function MainMenu() {
   return (
     <div className="flex gap-4 flex-col">
       <p className="font-bold">Добавить</p>
-      <div className="flex gap-4 items-start">
+      <div className="flex gap-4 items-start flex-wrap">
         <label
           htmlFor="picture"
           onClick={() => {
@@ -70,9 +73,10 @@ function MainMenu() {
             }}
             hidden
           />
-          <button>Изображение</button>
+          <button className="btn">Изображение</button>
         </label>
         <button
+          className="btn"
           onClick={() => {
             const textItem = makeTextItem();
 
@@ -85,6 +89,7 @@ function MainMenu() {
           Текст
         </button>
         <button
+          className="btn"
           onClick={() => {
             const figureItem = makeFigureItem(FigureType.Rect);
 
@@ -97,6 +102,7 @@ function MainMenu() {
           Прямоугольник
         </button>
         <button
+          className="btn"
           onClick={() => {
             const figureItem = makeFigureItem(FigureType.Circle);
 
@@ -109,6 +115,7 @@ function MainMenu() {
           Кружок
         </button>
         <button
+          className="btn"
           title="Пак котов"
           onClick={() => {
             (
@@ -116,7 +123,7 @@ function MainMenu() {
             ).showModal();
           }}
         >
-          🐈
+          <img src={catEmoji} alt="" height="32" width="32" />
         </button>
       </div>
     </div>
