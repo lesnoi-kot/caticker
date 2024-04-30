@@ -7,25 +7,25 @@ import {
   useRef,
 } from "react";
 
-import { ResizerType } from "./types";
 import {
+  computeBoundingBox,
   getCenter,
   getGeometry,
+  getGeometryOfSelection,
   useTransformActions,
-} from "../store/transforms";
-import { useWorkspaceStore } from "../store/workspace";
-import { degToRad, distance, radToDeg } from "../utils/math";
-import { getRelativeXY } from "../utils/events";
-import { HistoryComparer, useUndoStore } from "../store/undo";
+  useTransformStore,
+} from "@/store/transforms";
+import { useWorkspaceStore } from "@/store/workspace";
+import { HistoryComparer, useUndoStore } from "@/store/undo";
+import { degToRad, distance, radToDeg } from "@/utils/math";
+import { getRelativeXY } from "@/utils/events";
+
+import { ResizerType } from "./types";
 
 type WorkspaceContexData = {
   workspaceRef: RefObject<HTMLDivElement>;
   onItemPress: (itemId: string, event: MouseEvent) => void;
-  onItemResizeStart: (
-    itemId: string,
-    type: ResizerType,
-    event: MouseEvent
-  ) => void;
+  onItemResizeStart: (type: ResizerType, event: MouseEvent) => void;
   onItemRotateStart: (itemId: string, event: MouseEvent) => void;
 };
 
@@ -66,19 +66,21 @@ export const useCreateWorkspaceRef = (): WorkspaceContexData => {
 
   const onItemResize = useCallback(
     (event: MouseEvent) => {
-      const selectedIds = Array.from(
-        useWorkspaceStore.getState().selectedItems
-      );
+      const workspaceState = useWorkspaceStore.getState();
+      const selectedIds = Array.from(workspaceState.selectedItems);
 
-      if (!workspaceRef.current || selectedIds.length === 0) {
+      if (!workspaceRef.current || selectedIds.length !== 1) {
         return;
       }
 
-      const [selectedId] = selectedIds;
+      const transformState = useTransformStore.getState();
+      const mouse = getRelativeXY(workspaceRef.current, event);
+      const isSingleSelect = selectedIds.length === 1;
 
       const { unscaledWidth, unscaledHeight, rotation, transform } =
-        getGeometry(selectedId);
-      const mouse = getRelativeXY(workspaceRef.current, event);
+        selectedIds.length === 1
+          ? getGeometry(selectedIds[0])
+          : getGeometryOfSelection(transformState, selectedIds);
       const rotationRad = degToRad(rotation);
 
       const normalizedOrigin = getOriginOfResizer(resizeDirection.current);
@@ -87,45 +89,53 @@ export const useCreateWorkspaceRef = (): WorkspaceContexData => {
           .scale(unscaledWidth, unscaledHeight)
           .transformPoint(normalizedOrigin)
       );
-
       const distToOrigin = distance(mouse, origin);
       const angleToOrigin = Math.atan2(mouse.y - origin.y, mouse.x - origin.x);
-
-      if (resizeDirection.current.includes("right")) {
-        scaleTo(
-          selectedId,
-          (distToOrigin * Math.cos(angleToOrigin - rotationRad)) /
-            unscaledWidth,
-          null,
-          normalizedOrigin
-        );
-      }
-
-      if (resizeDirection.current.includes("bottom")) {
-        scaleTo(
-          selectedId,
-          null,
-          (distToOrigin * Math.sin(angleToOrigin - rotationRad)) /
-            unscaledHeight,
-          normalizedOrigin
-        );
-      }
 
       if (resizeDirection.current.includes("top")) {
         const newScale =
           (distToOrigin * Math.cos(angleToOrigin - rotationRad + Math.PI / 2)) /
           unscaledHeight;
-        scaleTo(selectedId, null, newScale, normalizedOrigin);
+
+        selectedIds.forEach((selectedId) => {
+          scaleTo(selectedId, null, newScale, normalizedOrigin);
+        });
+      }
+
+      if (resizeDirection.current.includes("right")) {
+        const newScale =
+          (distToOrigin * Math.cos(angleToOrigin - rotationRad)) /
+          unscaledWidth;
+
+        selectedIds.forEach((selectedId) => {
+          scaleTo(
+            selectedId,
+            (isSingleSelect ? 1 : transformState.items[selectedId].scale.x) *
+              newScale,
+            null,
+            normalizedOrigin
+          );
+        });
+      }
+
+      if (resizeDirection.current.includes("bottom")) {
+        const newScale =
+          (distToOrigin * Math.sin(angleToOrigin - rotationRad)) /
+          unscaledHeight;
+
+        selectedIds.forEach((selectedId) => {
+          scaleTo(selectedId, null, newScale, normalizedOrigin);
+        });
       }
 
       if (resizeDirection.current.includes("left")) {
-        scaleTo(
-          selectedId,
+        const newScale =
           (distToOrigin * Math.cos(angleToOrigin - rotationRad + Math.PI)) /
-            unscaledWidth,
-          null,
-          normalizedOrigin
-        );
+          unscaledWidth;
+
+        selectedIds.forEach((selectedId) => {
+          scaleTo(selectedId, newScale, null, normalizedOrigin);
+        });
       }
     },
     [scaleTo]
@@ -224,11 +234,10 @@ export const useCreateWorkspaceRef = (): WorkspaceContexData => {
   );
 
   const onItemResizeStart = useCallback(
-    (itemId: string, type: ResizerType, event: MouseEvent) => {
+    (type: ResizerType, event: MouseEvent) => {
       if (event.button === 0) {
         window.getSelection()?.removeAllRanges();
 
-        selectOne(itemId);
         resizeDirection.current = type;
         onModificationStart();
 
@@ -236,7 +245,7 @@ export const useCreateWorkspaceRef = (): WorkspaceContexData => {
         document.addEventListener("mouseup", onMouseUp, { once: true });
       }
     },
-    [selectOne, onItemResize, onModificationStart, onMouseUp]
+    [onItemResize, onModificationStart, onMouseUp]
   );
 
   const handlers = useMemo(

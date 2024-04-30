@@ -4,6 +4,7 @@ import cn from "classnames";
 import { useSelectedItemIds } from "@/store/workspace";
 import {
   TransformState,
+  computeBoundingBox,
   getItemSizeFromGeometry,
   useTransformStore,
 } from "@/store/transforms";
@@ -44,6 +45,9 @@ export function Selection() {
           width: ${width}px;
           height: ${height}px;
           transform: ${transform};
+          --width: "${width.toFixed(0)}";
+          --height: "${height.toFixed(0)}";
+          --scaleX: "${Math.sign(1)}";
         `
       );
     }
@@ -79,11 +83,7 @@ export function Selection() {
             onMouseDown={(event) => {
               event.stopPropagation();
 
-              onItemResizeStart(
-                selectedItemIds[0],
-                resizeType,
-                event.nativeEvent
-              );
+              onItemResizeStart(resizeType, event.nativeEvent);
             }}
           />
         ))}
@@ -102,59 +102,16 @@ function computeItemBoundingBox(
   itemId: string
 ): SelectionGeometry {
   const geometry = state.items[itemId];
-  const { transform, scale } = geometry;
 
   const unscaledTransform = new DOMMatrix()
-    .multiplySelf(transform)
-    .multiplySelf(new DOMMatrix().scaleSelf(scale.x, scale.y).inverse());
-
+    .translateSelf(geometry.translate.x, geometry.translate.y)
+    .rotateSelf(geometry.rotation)
+    .scaleSelf(Math.sign(geometry.scale.x), Math.sign(geometry.scale.y));
   const scaledSize = getItemSizeFromGeometry(geometry);
-
-  if (scaledSize.x < 0) {
-    unscaledTransform.scaleSelf(-1, 1);
-  }
-  if (scaledSize.y < 0) {
-    unscaledTransform.scaleSelf(1, -1);
-  }
 
   return {
     width: Math.abs(scaledSize.x),
     height: Math.abs(scaledSize.y),
     transform: unscaledTransform,
-  };
-}
-
-function computeBoundingBox(
-  state: TransformState,
-  itemIds: string[]
-): SelectionGeometry {
-  let minX = Infinity,
-    maxX = -Infinity,
-    minY = Infinity,
-    maxY = -Infinity;
-
-  const points: DOMPointReadOnly[] = itemIds.flatMap((itemId) => {
-    const { transform, unscaledWidth, unscaledHeight } = state.items[itemId];
-    return [
-      transform.transformPoint(new DOMPointReadOnly(0, 0)),
-      transform.transformPoint(new DOMPointReadOnly(unscaledWidth, 0)),
-      transform.transformPoint(
-        new DOMPointReadOnly(unscaledWidth, unscaledHeight)
-      ),
-      transform.transformPoint(new DOMPointReadOnly(0, unscaledHeight)),
-    ];
-  });
-
-  for (const point of points) {
-    minX = Math.min(minX, point.x);
-    maxX = Math.max(maxX, point.x);
-    minY = Math.min(minY, point.y);
-    maxY = Math.max(maxY, point.y);
-  }
-
-  return {
-    width: maxX - minX,
-    height: maxY - minY,
-    transform: new DOMMatrixReadOnly().translate(minX, minY),
   };
 }

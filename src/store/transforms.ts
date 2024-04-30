@@ -255,3 +255,53 @@ export function getItemSizeFromGeometry(
 export function getItemSize(itemId: string): DOMPointReadOnly {
   return getItemSizeFromGeometry(getGeometry(itemId));
 }
+
+export function computeBoundingBox(state: TransformState, itemIds: string[]) {
+  let minX = Infinity,
+    maxX = -Infinity,
+    minY = Infinity,
+    maxY = -Infinity;
+
+  const points: DOMPointReadOnly[] = itemIds.flatMap((itemId) => {
+    const { transform, unscaledWidth, unscaledHeight } = state.items[itemId];
+    return [
+      transform.transformPoint(new DOMPointReadOnly(0, 0)),
+      transform.transformPoint(new DOMPointReadOnly(unscaledWidth, 0)),
+      transform.transformPoint(
+        new DOMPointReadOnly(unscaledWidth, unscaledHeight)
+      ),
+      transform.transformPoint(new DOMPointReadOnly(0, unscaledHeight)),
+    ];
+  });
+
+  for (const point of points) {
+    minX = Math.min(minX, point.x);
+    maxX = Math.max(maxX, point.x);
+    minY = Math.min(minY, point.y);
+    maxY = Math.max(maxY, point.y);
+  }
+
+  return {
+    width: maxX - minX,
+    height: maxY - minY,
+    transform: new DOMMatrixReadOnly().translate(minX, minY),
+  };
+}
+
+export function getGeometryOfSelection(
+  state: TransformState,
+  itemIds: string[]
+): ItemGeometryInfo {
+  const { width, height, transform } = computeBoundingBox(state, itemIds);
+
+  return {
+    translate: transform.transformPoint(new DOMPointReadOnly(0, 0)),
+    rotation: 0,
+    scale: { x: 1, y: 1 },
+    transform,
+
+    unscaledWidth: width,
+    unscaledHeight: height,
+    polygon: new geometry.Polygon(),
+  };
+}
