@@ -3,7 +3,7 @@ import { combine } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
 import { createWithEqualityFn } from "zustand/traditional";
 import { shallow } from "zustand/shallow";
-import { useTransformStore } from "./transforms";
+import { CreateActionOptions, useTransformStore } from "./transforms";
 import { STICKER_MAX_SIZE } from "../constants";
 import { FigureType, WorkspaceItemType } from "./types";
 
@@ -65,7 +65,7 @@ export const makeFigureItem = (figure: FigureType): WorkspaceFigure => ({
   type: WorkspaceItemType.Figure,
   layer: 0,
   figure,
-  color: figure === FigureType.Rect ? "teal" : "blueviolet",
+  color: `hsl(${(Math.random() * 360).toFixed()} 100% 75%)`,
 });
 
 type StageSettings = {
@@ -91,8 +91,8 @@ export const useWorkspaceStore = createWithEqualityFn(
       },
 
       (set) => ({
-        upsert: (item: WorkspaceAnyItem) => {
-          useTransformStore.getState().create(item.id);
+        upsert: (item: WorkspaceAnyItem, options?: CreateActionOptions) => {
+          useTransformStore.getState().create(item.id, options);
 
           set((state) => {
             state.stageItems[item.id] = item;

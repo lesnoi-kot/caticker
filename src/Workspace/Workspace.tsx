@@ -1,5 +1,6 @@
-import { useWorkspaceItemIds, useWorkspaceItem } from "../store/workspace";
-import { WorkspaceItemType } from "../store/types";
+import { useWorkspaceItemIds, useWorkspaceItem } from "@/store/workspace";
+import { useItemTransform } from "@/store/transforms";
+import { WorkspaceItemType } from "@/store/types";
 
 import Picture from "./Picture";
 import Text from "./Text";
@@ -45,14 +46,15 @@ function Items() {
 
 function SwitchItem({ id }: { id: string }) {
   const item = useWorkspaceItem(id);
+  const transform = useItemTransform(id);
 
   switch (item.type) {
     case WorkspaceItemType.Picture:
-      return <Picture item={item} />;
+      return <Picture transform={transform} item={item} />;
     case WorkspaceItemType.Text:
-      return <Text item={item} />;
+      return <Text transform={transform} item={item} />;
     case WorkspaceItemType.Figure:
-      return <Figure item={item} />;
+      return <Figure transform={transform} item={item} />;
     default:
       return null;
   }

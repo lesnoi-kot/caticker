@@ -1,14 +1,15 @@
 import { useEffect, useMemo, useRef } from "react";
 
-import { useWorkspaceStore, type WorkspacePicture } from "../store/workspace";
+import { useWorkspaceStore, type WorkspacePicture } from "@/store/workspace";
+import { useTransformStore } from "@/store/transforms";
+
 import type { ItemComponentInterface } from "./types";
 
 type Props = ItemComponentInterface<WorkspacePicture>;
 
-function Picture(props: Props) {
-  const { item } = props;
+function Picture({ item, transform }: Props) {
   const ref = useRef<HTMLImageElement>(null);
-
+  const resize = useTransformStore((store) => store.resize);
   const imageSrc = useMemo(() => URL.createObjectURL(item.file), [item.file]);
 
   useEffect(() => {
@@ -27,12 +28,21 @@ function Picture(props: Props) {
         const halfStageWidth = Math.ceil(
           useWorkspaceStore.getState().settings.stageWidth / 2
         );
-        if (img.width > halfStageWidth) {
-          img.width = halfStageWidth;
+
+        let k = 1;
+
+        if (img.naturalWidth > halfStageWidth) {
+          k = halfStageWidth / img.naturalWidth;
         }
+
+        resize(item.id, k * img.naturalWidth, k * img.naturalHeight);
       }}
       ref={ref}
       className="workspace__stage-picture"
+      style={{
+        width: `${transform.width}px`,
+        height: `${transform.height}px`,
+      }}
       src={imageSrc}
       draggable={false}
     />

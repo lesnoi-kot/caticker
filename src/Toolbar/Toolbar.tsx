@@ -77,7 +77,7 @@ function MainMenu() {
             const textItem = makeTextItem();
 
             runInUndoHistory(() => {
-              upsert(textItem);
+              upsert(textItem, { width: 200, height: 40 });
               selectOne(textItem.id);
             });
           }}

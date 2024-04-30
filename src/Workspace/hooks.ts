@@ -8,7 +8,6 @@ import {
 } from "react";
 
 import {
-  computeBoundingBox,
   getCenter,
   getGeometry,
   getGeometryOfSelection,
@@ -77,7 +76,7 @@ export const useCreateWorkspaceRef = (): WorkspaceContexData => {
       const mouse = getRelativeXY(workspaceRef.current, event);
       const isSingleSelect = selectedIds.length === 1;
 
-      const { unscaledWidth, unscaledHeight, rotation, transform } =
+      const { width, height, rotation, transform } =
         selectedIds.length === 1
           ? getGeometry(selectedIds[0])
           : getGeometryOfSelection(transformState, selectedIds);
@@ -86,7 +85,7 @@ export const useCreateWorkspaceRef = (): WorkspaceContexData => {
       const normalizedOrigin = getOriginOfResizer(resizeDirection.current);
       const origin = transform.transformPoint(
         new DOMMatrixReadOnly()
-          .scale(unscaledWidth, unscaledHeight)
+          .scale(width, height)
           .transformPoint(normalizedOrigin)
       );
       const distToOrigin = distance(mouse, origin);
@@ -95,7 +94,7 @@ export const useCreateWorkspaceRef = (): WorkspaceContexData => {
       if (resizeDirection.current.includes("top")) {
         const newScale =
           (distToOrigin * Math.cos(angleToOrigin - rotationRad + Math.PI / 2)) /
-          unscaledHeight;
+          height;
 
         selectedIds.forEach((selectedId) => {
           scaleTo(selectedId, null, newScale, normalizedOrigin);
@@ -104,8 +103,7 @@ export const useCreateWorkspaceRef = (): WorkspaceContexData => {
 
       if (resizeDirection.current.includes("right")) {
         const newScale =
-          (distToOrigin * Math.cos(angleToOrigin - rotationRad)) /
-          unscaledWidth;
+          (distToOrigin * Math.cos(angleToOrigin - rotationRad)) / width;
 
         selectedIds.forEach((selectedId) => {
           scaleTo(
@@ -120,8 +118,7 @@ export const useCreateWorkspaceRef = (): WorkspaceContexData => {
 
       if (resizeDirection.current.includes("bottom")) {
         const newScale =
-          (distToOrigin * Math.sin(angleToOrigin - rotationRad)) /
-          unscaledHeight;
+          (distToOrigin * Math.sin(angleToOrigin - rotationRad)) / height;
 
         selectedIds.forEach((selectedId) => {
           scaleTo(selectedId, null, newScale, normalizedOrigin);
@@ -131,7 +128,7 @@ export const useCreateWorkspaceRef = (): WorkspaceContexData => {
       if (resizeDirection.current.includes("left")) {
         const newScale =
           (distToOrigin * Math.cos(angleToOrigin - rotationRad + Math.PI)) /
-          unscaledWidth;
+          width;
 
         selectedIds.forEach((selectedId) => {
           scaleTo(selectedId, newScale, null, normalizedOrigin);

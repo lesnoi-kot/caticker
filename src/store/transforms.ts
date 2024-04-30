@@ -5,18 +5,20 @@ import { createWithEqualityFn } from "zustand/traditional";
 import { shallow } from "zustand/shallow";
 import geometry from "@flatten-js/core";
 
+const DEFAULT_ITEM_SIZE = 100;
+
 export type ItemGeometryInfo = {
   translate: { x: number; y: number };
   scale: { x: number; y: number };
   rotation: number;
-  unscaledWidth: number;
-  unscaledHeight: number;
+  width: number;
+  height: number;
 
   transform: DOMMatrixReadOnly;
   polygon: geometry.Polygon;
 };
 
-type CreateActionOptions = {
+export type CreateActionOptions = {
   x?: number;
   y?: number;
   width?: number;
@@ -36,8 +38,8 @@ export const useTransformStore = createWithEqualityFn(
 
           set((state) => {
             state.items[itemId] = {
-              unscaledWidth: options?.width ?? 0,
-              unscaledHeight: options?.height ?? 0,
+              width: options?.width ?? DEFAULT_ITEM_SIZE,
+              height: options?.height ?? DEFAULT_ITEM_SIZE,
               translate: { x: options?.x ?? 0, y: options?.y ?? 0 },
               rotation: 0,
               scale: { x: 1, y: 1 },
@@ -72,15 +74,11 @@ export const useTransformStore = createWithEqualityFn(
 
             // Recalculate the polygon.
             const p1 = g.transform.transformPoint(new DOMPoint(0, 0));
-            const p2 = g.transform.transformPoint(
-              new DOMPoint(g.unscaledWidth, 0)
-            );
+            const p2 = g.transform.transformPoint(new DOMPoint(g.width, 0));
             const p3 = g.transform.transformPoint(
-              new DOMPoint(g.unscaledWidth, g.unscaledHeight)
+              new DOMPoint(g.width, g.height)
             );
-            const p4 = g.transform.transformPoint(
-              new DOMPoint(0, g.unscaledHeight)
-            );
+            const p4 = g.transform.transformPoint(new DOMPoint(0, g.height));
 
             g.polygon = new geometry.Polygon([
               geometry.point(p1.x, p1.y),
@@ -153,18 +151,17 @@ export const useTransformStore = createWithEqualityFn(
               .translate(item.translate.x, item.translate.y)
               .rotate(item.rotation)
               .translate(
-                origin.x * item.unscaledWidth * item.scale.x,
-                origin.y * item.unscaledHeight * item.scale.y
+                origin.x * item.width * item.scale.x,
+                origin.y * item.height * item.scale.y
               )
               .scale(newScaleX, newScaleY)
-              .translate(
-                -origin.x * item.unscaledWidth,
-                -origin.y * item.unscaledHeight
-              );
+              .translate(-origin.x * item.width, -origin.y * item.height);
             const p = m.transformPoint(new DOMPoint(0, 0));
 
-            item.scale.x = newScaleX;
-            item.scale.y = newScaleY;
+            // item.scale.x = newScaleX;
+            // item.scale.y = newScaleY;
+            item.width = item.width * newScaleX;
+            item.height = item.height * newScaleY;
             item.translate.x = p.x;
             item.translate.y = p.y;
           });
@@ -172,10 +169,14 @@ export const useTransformStore = createWithEqualityFn(
           useTransformStore.getState().recalculateTransformMatrix(itemId);
         },
 
-        resize: (itemId: string, w: number, h: number) => {
+        resize: (itemId: string, w?: number, h?: number) => {
           set((state) => {
-            state.items[itemId].unscaledWidth = w;
-            state.items[itemId].unscaledHeight = h;
+            if (w) {
+              state.items[itemId].width = w;
+            }
+            if (h) {
+              state.items[itemId].height = h;
+            }
           });
 
           useTransformStore.getState().recalculatePolygon(itemId);
@@ -203,6 +204,9 @@ export type TransformState = ReturnType<typeof useTransformStore.getState>;
 
 export const mergeTransformState = (newState: TransformState) =>
   useTransformStore.setState(newState);
+
+export const useItemTransform = (id: string) =>
+  useTransformStore((state) => state.items[id]);
 
 export const useTransformActions = () => {
   const translate = useTransformStore((store) => store.translate);
@@ -236,20 +240,15 @@ export function getGeometry(itemId: string): ItemGeometryInfo {
 export function getCenter(
   g: ItemGeometryInfo | Draft<ItemGeometryInfo>
 ): DOMPoint {
-  const { unscaledWidth, unscaledHeight, transform } = g;
-  return transform.transformPoint(
-    new DOMPoint(unscaledWidth / 2, unscaledHeight / 2)
-  );
+  const { width, height, transform } = g;
+  return transform.transformPoint(new DOMPoint(width / 2, height / 2));
 }
 
 export function getItemSizeFromGeometry(
   g: ItemGeometryInfo | Draft<ItemGeometryInfo>
 ): DOMPointReadOnly {
-  const { scale, unscaledWidth, unscaledHeight } = g;
-  return new DOMPointReadOnly(
-    unscaledWidth * scale.x,
-    unscaledHeight * scale.y
-  );
+  const { scale, width, height } = g;
+  return new DOMPointReadOnly(width * scale.x, height * scale.y);
 }
 
 export function getItemSize(itemId: string): DOMPointReadOnly {
@@ -263,14 +262,12 @@ export function computeBoundingBox(state: TransformState, itemIds: string[]) {
     maxY = -Infinity;
 
   const points: DOMPointReadOnly[] = itemIds.flatMap((itemId) => {
-    const { transform, unscaledWidth, unscaledHeight } = state.items[itemId];
+    const { transform, width, height } = state.items[itemId];
     return [
       transform.transformPoint(new DOMPointReadOnly(0, 0)),
-      transform.transformPoint(new DOMPointReadOnly(unscaledWidth, 0)),
-      transform.transformPoint(
-        new DOMPointReadOnly(unscaledWidth, unscaledHeight)
-      ),
-      transform.transformPoint(new DOMPointReadOnly(0, unscaledHeight)),
+      transform.transformPoint(new DOMPointReadOnly(width, 0)),
+      transform.transformPoint(new DOMPointReadOnly(width, height)),
+      transform.transformPoint(new DOMPointReadOnly(0, height)),
     ];
   });
 
@@ -300,8 +297,8 @@ export function getGeometryOfSelection(
     scale: { x: 1, y: 1 },
     transform,
 
-    unscaledWidth: width,
-    unscaledHeight: height,
+    width: width,
+    height: height,
     polygon: new geometry.Polygon(),
   };
 }

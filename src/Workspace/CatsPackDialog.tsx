@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { MouseEventHandler, useRef } from "react";
 
 import { makePictureItem, useWorkspaceStoreActions } from "../store/workspace";
 
@@ -24,12 +24,19 @@ export default function CatsPackDialog() {
   const ref = useRef<HTMLDialogElement>(null);
   const { upsert, selectOne } = useWorkspaceStoreActions();
 
-  const onItemClick = async (src: string) => {
-    const res = await fetch(src);
+  const onItemClick: MouseEventHandler<HTMLImageElement> = async (event) => {
+    const target = event.target as HTMLImageElement;
+    const res = await fetch(target.src);
     const blob = await res.blob();
+
     const newItem = makePictureItem(blob);
-    upsert(newItem);
+    upsert(newItem, {
+      width: target.naturalWidth,
+      height: target.naturalHeight,
+    });
     selectOne(newItem.id);
+
+    ref.current?.close();
   };
 
   return (
@@ -47,15 +54,15 @@ export default function CatsPackDialog() {
         <h3 className="text-xl mb-4">Пак котов</h3>
         <ul className="flex flex-row justify-center flex-wrap gap-8 max-w-sm">
           {images.map(([name, src]) => (
-            <li
-              className="basis-1/4 cursor-pointer"
-              key={name}
-              onClick={() => {
-                onItemClick(src);
-                ref.current?.close();
-              }}
-            >
-              <img src={src} alt={name} loading="lazy" />
+            <li className="basis-1/4" key={name}>
+              <img
+                src={src}
+                onClick={onItemClick}
+                alt={name}
+                className="cursor-pointer"
+                loading="lazy"
+              />
+
               {name}
             </li>
           ))}

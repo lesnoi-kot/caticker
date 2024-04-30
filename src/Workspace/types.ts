@@ -1,7 +1,9 @@
-import { BaseWorkspaceItem } from "../store/workspace";
+import { ItemGeometryInfo } from "@/store/transforms";
+import { BaseWorkspaceItem } from "@/store/workspace";
 
 export type ItemComponentInterface<T extends BaseWorkspaceItem> = {
   item: T;
+  transform: ItemGeometryInfo;
 };
 
 export type ResizerType =

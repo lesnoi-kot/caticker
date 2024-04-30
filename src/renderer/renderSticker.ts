@@ -1,12 +1,11 @@
-import type { ItemGeometryInfo } from "../store/transforms";
+import type { ItemGeometryInfo } from "@/store/transforms";
 import type {
   WorkspaceAnyItem,
   WorkspaceFigure,
   WorkspacePicture,
   WorkspaceText,
-} from "../store/workspace";
-import { FIGURE_BASE_SIZE } from "../constants";
-import { FigureType, WorkspaceItemType } from "../store/types";
+} from "@/store/workspace";
+import { FigureType, WorkspaceItemType } from "@/store/types";
 
 export type RenderStickerArguments = {
   width: number;
@@ -71,22 +70,24 @@ async function renderImage(
   const img = await self.createImageBitmap(picture.file);
   const transform = args.transformItems[picture.id];
 
-  ctx.drawImage(img, 0, 0, transform.unscaledWidth, transform.unscaledHeight);
+  ctx.drawImage(img, 0, 0, transform.width, transform.height);
 }
 
 function renderFigure(
   ctx: OffscreenCanvasRenderingContext2D,
   args: RenderStickerArguments,
-  item: WorkspaceFigure
+  figure: WorkspaceFigure
 ) {
-  ctx.fillStyle = item.color;
+  ctx.fillStyle = figure.color;
+  const { width, height } = args.transformItems[figure.id];
 
-  if (item.figure === FigureType.Rect) {
-    ctx.fillRect(0, 0, FIGURE_BASE_SIZE, FIGURE_BASE_SIZE);
-  } else if (item.figure === FigureType.Circle) {
+  if (figure.figure === FigureType.Rect) {
+    ctx.fillRect(0, 0, width, height);
+  } else if (figure.figure === FigureType.Circle) {
     ctx.beginPath();
-    const k = FIGURE_BASE_SIZE / 2;
-    ctx.ellipse(k, k, k, k, 0, 0, 2 * Math.PI);
+    const x = width / 2,
+      y = height / 2;
+    ctx.ellipse(x, y, x, y, 0, 0, 2 * Math.PI);
     ctx.fill();
   }
 }

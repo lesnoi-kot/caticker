@@ -55,7 +55,11 @@
   margin: 0;
   line-height: 1;
   z-index: var(--item-z-index);
+  white-space: pre-wrap;
+  line-break: anywhere;
+  resize: none;
   background: none;
+  background-color: hsl(350 100% 95% / 0.5);
   border: none;
   outline: none;
   user-select: none;

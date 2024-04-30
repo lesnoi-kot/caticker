@@ -1,16 +1,19 @@
 import { useEffect, useRef, useState } from "react";
 
-import { WorkspaceText, useWorkspaceStore } from "../store/workspace";
+import { WorkspaceText, useWorkspaceStore } from "@/store/workspace";
+import { runInUndoHistory } from "@/store/undo";
+import { useTransformStore } from "@/store/transforms";
+
 import type { ItemComponentInterface } from "./types";
-import { runInUndoHistory } from "../store/undo";
 
 type Props = ItemComponentInterface<WorkspaceText>;
 
-export default function Text({ item }: Props) {
-  const [editable, setEditable] = useState(true);
+export default function Text({ item, transform }: Props) {
+  const [editable, setEditable] = useState(false);
   const remove = useWorkspaceStore((store) => store.remove);
   const upsert = useWorkspaceStore((store) => store.upsert);
-  const ref = useRef<HTMLPreElement>(null);
+  const resize = useTransformStore((store) => store.resize);
+  const ref = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     if (editable && ref.current) {
@@ -18,16 +21,24 @@ export default function Text({ item }: Props) {
     }
   }, [editable]);
 
+  useEffect(() => {
+    if (ref.current && ref.current.scrollHeight > transform.height) {
+      resize(item.id, undefined, ref.current.scrollHeight);
+    }
+  }, [resize, item.id, transform.width, transform.height]);
+
   return (
-    <pre
+    <textarea
       id={item.id}
       ref={ref}
-      contentEditable={editable}
+      readOnly={!editable}
       suppressContentEditableWarning
       className="workspace__stage-text"
       role="textbox"
       draggable={false}
       style={{
+        width: `${transform.width}px`,
+        height: `${transform.height}px`,
         fontSize: `${item.fontSize}px`,
         fontFamily: item.fontFamily,
         fontStyle: item.fontItalic ? "italic" : "unset",
@@ -36,20 +47,26 @@ export default function Text({ item }: Props) {
           item.strokeWidth > 0 ? item.strokeColor : "unset",
         WebkitTextStrokeWidth: `${item.strokeWidth}px`,
       }}
-      onClick={() => {
-        setEditable(true);
+      onChange={(event) => {
+        if (event.target.scrollHeight > transform.height) {
+          resize(item.id, undefined, event.target.scrollHeight);
+        }
       }}
-      onFocus={placeCaretToTheEnd}
+      onDoubleClick={() => {
+        setEditable(true);
+        setTimeout(() => {
+          ref.current?.focus();
+        });
+      }}
       onKeyDown={(event) => {
         event.stopPropagation();
         blurOnEscape(event);
       }}
       onKeyUp={stopPropagation}
-      onKeyPress={stopPropagation}
       onBlur={(e) => {
         setEditable(false);
 
-        if (!(ref.current?.textContent ?? "").trim()) {
+        if (!(ref.current?.value ?? "").trim()) {
           runInUndoHistory(() => {
             remove(item.id);
           });
@@ -57,19 +74,14 @@ export default function Text({ item }: Props) {
           runInUndoHistory(() => {
             upsert({
               ...item,
-              text: (e.target as HTMLPreElement).innerText,
+              text: e.target.value,
             });
           });
         }
       }}
-    >
-      {item.text}
-    </pre>
+      defaultValue={item.text}
+    />
   );
-}
-
-function placeCaretToTheEnd(event: React.FocusEvent<HTMLPreElement>) {
-  window.getSelection()?.selectAllChildren(event.target);
 }
 
 function blurOnEscape(e: React.KeyboardEvent<HTMLElement>) {
