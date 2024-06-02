@@ -27,6 +27,7 @@ export type WorkspaceText = BaseWorkspaceItem & {
 export type WorkspacePicture = BaseWorkspaceItem & {
   type: WorkspaceItemType.Picture;
   file: Blob;
+  resizeQuality: ResizeQuality;
 };
 
 export type WorkspaceFigure = BaseWorkspaceItem & {
@@ -45,6 +46,7 @@ export const makePictureItem = (file: Blob): WorkspacePicture => ({
   type: WorkspaceItemType.Picture,
   layer: 0,
   file,
+  resizeQuality: "high",
 });
 
 export const makeTextItem = (): WorkspaceText => ({

@@ -67,7 +67,9 @@ async function renderImage(
   args: RenderStickerArguments,
   picture: WorkspacePicture
 ) {
-  const img = await self.createImageBitmap(picture.file);
+  const img = await self.createImageBitmap(picture.file, {
+    resizeQuality: picture.resizeQuality,
+  });
   const transform = args.transformItems[picture.id];
 
   ctx.drawImage(img, 0, 0, transform.width, transform.height);

@@ -158,10 +158,10 @@ export const useTransformStore = createWithEqualityFn(
               .translate(-origin.x * item.width, -origin.y * item.height);
             const p = m.transformPoint(new DOMPoint(0, 0));
 
-            // item.scale.x = newScaleX;
-            // item.scale.y = newScaleY;
-            item.width = item.width * newScaleX;
-            item.height = item.height * newScaleY;
+            item.scale.x = Math.sign(newScaleX);
+            item.scale.y = Math.sign(newScaleY);
+            item.width = Math.abs(item.width * newScaleX);
+            item.height = Math.abs(item.height * newScaleY);
             item.translate.x = p.x;
             item.translate.y = p.y;
           });
@@ -207,6 +207,9 @@ export const mergeTransformState = (newState: TransformState) =>
 
 export const useItemTransform = (id: string) =>
   useTransformStore((state) => state.items[id]);
+
+export const useItemsTransform = (ids: string[]) =>
+  useTransformStore((state) => ids.map((id) => state.items[id]));
 
 export const useTransformActions = () => {
   const translate = useTransformStore((store) => store.translate);

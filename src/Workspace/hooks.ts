@@ -102,14 +102,14 @@ export const useCreateWorkspaceRef = (): WorkspaceContexData => {
       }
 
       if (resizeDirection.current.includes("right")) {
-        const newScale =
-          (distToOrigin * Math.cos(angleToOrigin - rotationRad)) / width;
+        const newWidth = distToOrigin * Math.cos(angleToOrigin - rotationRad);
+        const newScaleX = newWidth / width;
 
         selectedIds.forEach((selectedId) => {
           scaleTo(
             selectedId,
             (isSingleSelect ? 1 : transformState.items[selectedId].scale.x) *
-              newScale,
+              newScaleX,
             null,
             normalizedOrigin
           );
