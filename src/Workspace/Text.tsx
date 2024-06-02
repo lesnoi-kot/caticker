@@ -28,59 +28,66 @@ export default function Text({ item, transform }: Props) {
   }, [resize, item.id, transform.width, transform.height]);
 
   return (
-    <textarea
-      id={item.id}
-      ref={ref}
-      readOnly={!editable}
-      suppressContentEditableWarning
-      className="workspace__stage-text"
-      role="textbox"
-      draggable={false}
-      style={{
-        width: `${transform.width}px`,
-        height: `${transform.height}px`,
-        fontSize: `${item.fontSize}px`,
-        fontFamily: item.fontFamily,
-        fontStyle: item.fontItalic ? "italic" : "unset",
-        color: item.color,
-        WebkitTextStrokeColor:
-          item.strokeWidth > 0 ? item.strokeColor : "unset",
-        WebkitTextStrokeWidth: `${item.strokeWidth}px`,
-      }}
-      onChange={(event) => {
-        if (event.target.scrollHeight > transform.height) {
-          resize(item.id, undefined, event.target.scrollHeight);
-        }
-      }}
+    <div
       onDoubleClick={() => {
-        setEditable(true);
-        setTimeout(() => {
-          ref.current?.focus();
-        });
-      }}
-      onKeyDown={(event) => {
-        event.stopPropagation();
-        blurOnEscape(event);
-      }}
-      onKeyUp={stopPropagation}
-      onBlur={(e) => {
-        setEditable(false);
-
-        if (!(ref.current?.value ?? "").trim()) {
-          runInUndoHistory(() => {
-            remove(item.id);
-          });
-        } else {
-          runInUndoHistory(() => {
-            upsert({
-              ...item,
-              text: e.target.value,
-            });
+        if (!editable) {
+          setEditable(true);
+          setTimeout(() => {
+            ref.current?.focus();
+            ref.current?.select();
           });
         }
       }}
-      defaultValue={item.text}
-    />
+    >
+      <textarea
+        id={item.id}
+        ref={ref}
+        disabled={!editable}
+        suppressContentEditableWarning
+        className="workspace__stage-text"
+        role="textbox"
+        draggable={false}
+        style={{
+          width: `${transform.width}px`,
+          height: `${transform.height}px`,
+          fontSize: `${item.fontSize}px`,
+          fontFamily: item.fontFamily,
+          fontStyle: item.fontItalic ? "italic" : "unset",
+          color: item.color,
+          WebkitTextStrokeColor:
+            item.strokeWidth > 0 ? item.strokeColor : "unset",
+          WebkitTextStrokeWidth: `${item.strokeWidth}px`,
+        }}
+        onChange={(event) => {
+          if (event.target.scrollHeight > transform.height) {
+            resize(item.id, undefined, event.target.scrollHeight);
+          }
+        }}
+        onMouseDown={stopPropagation}
+        onKeyDown={(event) => {
+          event.stopPropagation();
+          blurOnEscape(event);
+        }}
+        onKeyUp={stopPropagation}
+        onBlur={(e) => {
+          setEditable(false);
+
+          if (!(ref.current?.value ?? "").trim()) {
+            runInUndoHistory(() => {
+              remove(item.id);
+            });
+          } else {
+            runInUndoHistory(() => {
+              upsert({
+                ...item,
+                text: e.target.value,
+              });
+            });
+          }
+        }}
+        defaultValue={item.text}
+      />
+    </div>
   );
 }
 
@@ -96,6 +103,6 @@ function blurOnEscape(e: React.KeyboardEvent<HTMLElement>) {
   }
 }
 
-function stopPropagation(event: React.KeyboardEvent) {
+function stopPropagation(event: React.UIEvent) {
   event.stopPropagation();
 }

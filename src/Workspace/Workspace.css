@@ -58,12 +58,16 @@
   white-space: pre-wrap;
   line-break: anywhere;
   resize: none;
+  appearance: none;
   background: none;
-  background-color: hsl(350 100% 95% / 0.5);
   border: none;
   outline: none;
   user-select: none;
   caret-color: currentColor;
+}
+
+.workspace__stage-text:disabled {
+  pointer-events: none;
 }
 
 .workspace__stage-text:empty {

@@ -48,6 +48,9 @@ export default function CatsPackDialog() {
           ref.current?.close();
         }
       }}
+      onKeyDown={(e) => {
+        e.stopPropagation();
+      }}
       className="rounded"
     >
       <div className="p-4">
