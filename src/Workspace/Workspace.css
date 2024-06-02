@@ -29,19 +29,17 @@
   pointer-events: none;
   transform-origin: 0 0 0;
   z-index: 1;
-  outline: 2px dashed black;
+  outline: 1px dashed black;
 }
 
-.workspace__stage-item__selection::before {
+.workspace__stage-item__selection-label {
   display: inline-block;
-  position: relative;
+  position: absolute;
   font-size: 1rem;
   font-weight: bolder;
-  top: -1.5rem;
-  left: 50%;
-  translate: -50% 0;
   scale: 1 1;
-  content: var(--width) "×" var(--height);
+  user-select: none;
+  pointer-events: none;
 }
 
 .workspace__stage-picture {

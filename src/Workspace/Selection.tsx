@@ -1,11 +1,12 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import cn from "classnames";
 
 import { useSelectedItemIds } from "@/store/workspace";
 import {
-  TransformState,
   computeBoundingBox,
   getItemSizeFromGeometry,
+  type ItemGeometryInfo,
+  useItemsTransform,
   useTransformStore,
 } from "@/store/transforms";
 
@@ -20,41 +21,33 @@ export function Selection() {
   const selectedItemIds = useSelectedItemIds();
   const canResize = selectedItemIds.length === 1;
   const canRotate = selectedItemIds.length === 1;
+  const selectedItemsTransform = useItemsTransform(selectedItemIds);
+
+  const boundingBox = useMemo<SelectionGeometry | null>(() => {
+    if (selectedItemsTransform.length === 0) {
+      return null;
+    }
+
+    if (!selectionRef.current || !selectedItemsTransform.every(Boolean)) {
+      return null;
+    }
+
+    const boundingBox =
+      selectedItemsTransform.length === 1
+        ? computeItemBoundingBox(selectedItemsTransform[0])
+        : computeBoundingBox(useTransformStore.getState(), selectedItemIds);
+    return boundingBox;
+  }, [selectedItemIds, selectedItemsTransform]);
 
   useEffect(() => {
-    if (selectedItemIds.length === 0) {
-      return;
-    }
-
-    function updateTransformStyle(state: TransformState) {
-      if (
-        !selectionRef.current ||
-        !selectedItemIds.every((itemId) => Boolean(state.items[itemId]))
-      ) {
-        return;
-      }
-
-      const { width, height, transform } =
-        selectedItemIds.length === 1
-          ? computeItemBoundingBox(state, selectedItemIds[0])
-          : computeBoundingBox(state, selectedItemIds);
-
-      selectionRef.current.setAttribute(
+    if (boundingBox) {
+      const { width, height, transform } = boundingBox;
+      selectionRef.current?.setAttribute(
         "style",
-        `
-          width: ${width}px;
-          height: ${height}px;
-          transform: ${transform};
-          --width: "${width.toFixed(0)}";
-          --height: "${height.toFixed(0)}";
-          --scaleX: "${Math.sign(1)}";
-        `
+        `width: ${width}px; height: ${height}px; transform: ${transform};`
       );
     }
-
-    updateTransformStyle(useTransformStore.getState());
-    return useTransformStore.subscribe(updateTransformStyle);
-  }, [selectedItemIds]);
+  }, [selectedItemIds, boundingBox]);
 
   return (
     <div
@@ -65,6 +58,8 @@ export function Selection() {
         selectedItemIds.length === 0 && "hidden"
       )}
     >
+      <SizeLabels boundingBox={boundingBox} />
+
       {canRotate && (
         <RotatorHandle
           onMouseDown={(event) => {
@@ -91,18 +86,43 @@ export function Selection() {
   );
 }
 
+function SizeLabels({
+  boundingBox,
+}: {
+  boundingBox: SelectionGeometry | null;
+}) {
+  if (!boundingBox) {
+    return null;
+  }
+
+  const { width, height, rotation = 0 } = boundingBox;
+  const caption = `${Math.round(width)}×${Math.round(height)}`;
+  const idx = Math.round(((360 + rotation) % 360) / 90) % 4;
+  const labels = [
+    <span className="workspace__stage-item__selection-label left-1/2 top-0 -translate-x-1/2 -translate-y-full">
+      {caption}
+    </span>,
+    <span className="workspace__stage-item__selection-label left-0 top-1/2 -rotate-90 -translate-y-1/2 -translate-x-3/4">
+      {caption}
+    </span>,
+    <span className="workspace__stage-item__selection-label left-1/2 bottom-0 -translate-x-1/2 translate-y-full -scale-x-100 -scale-y-100">
+      {caption}
+    </span>,
+    <span className="workspace__stage-item__selection-label right-0 top-1/2 rotate-90 -translate-y-1/2 translate-x-3/4">
+      {caption}
+    </span>,
+  ];
+  return labels[idx];
+}
+
 type SelectionGeometry = {
   width: number;
   height: number;
   transform: DOMMatrixReadOnly;
+  rotation?: number;
 };
 
-function computeItemBoundingBox(
-  state: TransformState,
-  itemId: string
-): SelectionGeometry {
-  const geometry = state.items[itemId];
-
+function computeItemBoundingBox(geometry: ItemGeometryInfo): SelectionGeometry {
   const unscaledTransform = new DOMMatrix()
     .translateSelf(geometry.translate.x, geometry.translate.y)
     .rotateSelf(geometry.rotation)
@@ -113,5 +133,6 @@ function computeItemBoundingBox(
     width: Math.abs(scaledSize.x),
     height: Math.abs(scaledSize.y),
     transform: unscaledTransform,
+    rotation: geometry.rotation,
   };
 }
