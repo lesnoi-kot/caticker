@@ -32,11 +32,11 @@ export function Selection() {
       return null;
     }
 
-    const boundingBox =
-      selectedItemsTransform.length === 1
-        ? computeItemBoundingBox(selectedItemsTransform[0])
-        : computeBoundingBox(useTransformStore.getState(), selectedItemIds);
-    return boundingBox;
+    if (selectedItemsTransform.length === 1) {
+      return computeItemBoundingBox(selectedItemsTransform[0]);
+    }
+
+    return computeBoundingBox(useTransformStore.getState(), selectedItemIds);
   }, [selectedItemIds, selectedItemsTransform]);
 
   useEffect(() => {
@@ -47,7 +47,7 @@ export function Selection() {
         `width: ${width}px; height: ${height}px; transform: ${transform};`
       );
     }
-  }, [selectedItemIds, boundingBox]);
+  }, [boundingBox]);
 
   return (
     <div
@@ -58,8 +58,6 @@ export function Selection() {
         selectedItemIds.length === 0 && "hidden"
       )}
     >
-      <SizeLabels boundingBox={boundingBox} />
-
       {canRotate && (
         <RotatorHandle
           onMouseDown={(event) => {
@@ -84,35 +82,6 @@ export function Selection() {
         ))}
     </div>
   );
-}
-
-function SizeLabels({
-  boundingBox,
-}: {
-  boundingBox: SelectionGeometry | null;
-}) {
-  if (!boundingBox) {
-    return null;
-  }
-
-  const { width, height, rotation = 0 } = boundingBox;
-  const caption = `${Math.round(width)}×${Math.round(height)}`;
-  const idx = Math.round(((360 + rotation) % 360) / 90) % 4;
-  const labels = [
-    <span className="workspace__stage-item__selection-label left-1/2 top-0 -translate-x-1/2 -translate-y-full">
-      {caption}
-    </span>,
-    <span className="workspace__stage-item__selection-label left-0 top-1/2 -rotate-90 -translate-y-1/2 -translate-x-3/4">
-      {caption}
-    </span>,
-    <span className="workspace__stage-item__selection-label left-1/2 bottom-0 -translate-x-1/2 translate-y-full -scale-x-100 -scale-y-100">
-      {caption}
-    </span>,
-    <span className="workspace__stage-item__selection-label right-0 top-1/2 rotate-90 -translate-y-1/2 translate-x-3/4">
-      {caption}
-    </span>,
-  ];
-  return labels[idx];
 }
 
 type SelectionGeometry = {
