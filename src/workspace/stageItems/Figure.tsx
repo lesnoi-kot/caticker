@@ -1,12 +1,14 @@
+import clsx from "clsx";
+
 import { WorkspaceFigure } from "@/store/workspace";
 import { FigureType } from "@/store/types";
 
-import type { ItemComponentInterface } from "./types";
+import type { ItemComponentInterface } from "../types";
+import css from "./stageItems.module.css";
 
 const classnameForFigure = {
-  [FigureType.Rect]: "workspace__stage-figure workspace__stage-figure--rect",
-  [FigureType.Circle]:
-    "workspace__stage-figure workspace__stage-figure--circle",
+  [FigureType.Rect]: "",
+  [FigureType.Circle]: "rounded-full",
 };
 
 function Figure({
@@ -16,7 +18,7 @@ function Figure({
   return (
     <div
       id={item.id}
-      className={classnameForFigure[item.figure] ?? ""}
+      className={clsx(css.stageItem, classnameForFigure[item.figure])}
       style={{
         backgroundColor: item.color,
         width: `${tranform.width}px`,

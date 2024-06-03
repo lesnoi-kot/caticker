@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useRef } from "react";
+import clsx from "clsx";
 
 import { useWorkspaceStore, type WorkspacePicture } from "@/store/workspace";
 import { useTransformStore } from "@/store/transforms";
 
-import type { ItemComponentInterface } from "./types";
+import type { ItemComponentInterface } from "../types";
+import css from "./stageItems.module.css";
 
 type Props = ItemComponentInterface<WorkspacePicture>;
 
@@ -38,7 +40,7 @@ function Picture({ item, transform }: Props) {
         resize(item.id, k * img.naturalWidth, k * img.naturalHeight);
       }}
       ref={ref}
-      className="workspace__stage-picture"
+      className={clsx(css.stageItem, css.picture)}
       style={{
         width: `${transform.width}px`,
         height: `${transform.height}px`,

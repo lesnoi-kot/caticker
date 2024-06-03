@@ -4,13 +4,13 @@ import { STICKER_MAX_SIZE } from "../constants";
 import { useWorkspaceStore } from "../store/workspace";
 import { HistoryComparer, useUndoStore } from "../store/undo";
 import { getRelativeXY } from "../utils/events";
-import { WorkspaceContex, useCreateWorkspaceRef } from "./hooks";
+import { useWorkspaceRef } from "./hooks";
+import ResizerDot from "./ui/ResizerDot";
 
-import ResizerDot from "./ResizerDot";
+import css from "./workspace.module.css";
 
 function Canvas({ children }: { children: ReactNode }) {
-  const workspaceHandlers = useCreateWorkspaceRef();
-  const { workspaceRef } = workspaceHandlers;
+  const { workspaceRef } = useWorkspaceRef();
   const currResizer = useRef<"right" | "bottom">("right");
   const historyComparer = useRef<HistoryComparer>(new HistoryComparer());
   const pushHistory = useUndoStore((store) => store.push);
@@ -73,7 +73,7 @@ function Canvas({ children }: { children: ReactNode }) {
   return (
     <div
       ref={workspaceRef}
-      className="workspace__result-window shadow-xl"
+      className={css.canvas}
       style={{
         width: `${settings.stageWidth}px`,
         height: `${settings.stageHeight}px`,
@@ -82,25 +82,24 @@ function Canvas({ children }: { children: ReactNode }) {
       }}
     >
       <div className="absolute w-full h-full top-0 left-0 bg-checkered dark:bg-checkeredDark -z-50"></div>
-      <WorkspaceContex.Provider value={workspaceHandlers}>
-        {settings.stageHeight === STICKER_MAX_SIZE && (
-          <ResizerDot
-            position="right"
-            onMouseDown={() => {
-              onResizeStart("right");
-            }}
-          />
-        )}
-        {settings.stageWidth === STICKER_MAX_SIZE && (
-          <ResizerDot
-            position="bottom"
-            onMouseDown={() => {
-              onResizeStart("bottom");
-            }}
-          />
-        )}
-        {children}
-      </WorkspaceContex.Provider>
+
+      {settings.stageHeight === STICKER_MAX_SIZE && (
+        <ResizerDot
+          position="right"
+          onMouseDown={() => {
+            onResizeStart("right");
+          }}
+        />
+      )}
+      {settings.stageWidth === STICKER_MAX_SIZE && (
+        <ResizerDot
+          position="bottom"
+          onMouseDown={() => {
+            onResizeStart("bottom");
+          }}
+        />
+      )}
+      {children}
     </div>
   );
 }

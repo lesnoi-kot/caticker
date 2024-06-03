@@ -1,7 +1,8 @@
+import Toolbar, { MainMenu } from "./toolbars/Toolbar";
+import { SidebarMenu } from "./toolbars/SidebarMenu";
+import { Workspace } from "./workspace";
 import Help from "./Help";
-import Toolbar, { MainMenu } from "./Toolbar/Toolbar";
-import Workspace from "./Workspace/Workspace";
-import CatsPackDialog from "./Workspace/CatsPackDialog";
+import CatsPackDialog from "./CatsPackDialog";
 
 import "./App.css";
 
@@ -17,7 +18,10 @@ function App() {
 
         <div className="flex flex-col gap-8">
           <MainMenu />
-          <Workspace />
+          <div className="flex gap-4">
+            <Workspace />
+            <SidebarMenu />
+          </div>
           <Toolbar />
           <CatsPackDialog />
         </div>

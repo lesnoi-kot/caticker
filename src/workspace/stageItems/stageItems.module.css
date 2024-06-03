@@ -1,0 +1,30 @@
+.stageItem {
+  user-select: none;
+  z-index: var(--item-z-index);
+}
+
+.picture {
+  display: block;
+  max-width: unset;
+}
+
+.text {
+  margin: 0;
+  line-height: 1;
+  white-space: pre-wrap;
+  line-break: anywhere;
+  resize: none;
+  appearance: none;
+  background: none;
+  border: none;
+  outline: none;
+  caret-color: currentColor;
+}
+
+.text:disabled {
+  pointer-events: none;
+}
+
+.text:empty {
+  min-width: 5ch;
+}

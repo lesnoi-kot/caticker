@@ -12,7 +12,7 @@ import {
   useSelectedItemIds,
   useWorkspaceStoreActions,
 } from "@/store/workspace";
-import { catsPackDialogId } from "@/Workspace/CatsPackDialog";
+import { catsPackDialogId } from "@/CatsPackDialog";
 
 import catEmoji from "@/assets/cats/emoji.png";
 

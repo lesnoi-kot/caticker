@@ -1,0 +1,101 @@
+.anchor {
+  --anchor-size: 10px;
+  --anchor-margin: calc(-1 * var(--anchor-size) / 2);
+
+  position: absolute;
+  width: var(--anchor-size);
+  height: var(--anchor-size);
+  z-index: var(--anchors-z-index);
+  pointer-events: all;
+  border-radius: 50%;
+  background-color: cornflowerblue;
+  user-select: none;
+}
+
+.anchor--top-left {
+  left: 0;
+  top: 0;
+  margin-left: var(--anchor-margin);
+  margin-top: var(--anchor-margin);
+  cursor: nw-resize;
+}
+
+.anchor--top {
+  right: 50%;
+  top: 0;
+  margin-right: var(--anchor-margin);
+  margin-top: var(--anchor-margin);
+  cursor: n-resize;
+}
+
+.anchor--top-right {
+  right: 0;
+  top: 0;
+  margin-right: var(--anchor-margin);
+  margin-top: var(--anchor-margin);
+  cursor: ne-resize;
+}
+
+.anchor--right {
+  right: 0;
+  top: 50%;
+  margin-right: var(--anchor-margin);
+  margin-top: var(--anchor-margin);
+  cursor: e-resize;
+}
+
+.anchor--bottom-right {
+  right: 0;
+  bottom: 0;
+  margin-right: var(--anchor-margin);
+  margin-bottom: var(--anchor-margin);
+  cursor: se-resize;
+}
+
+.anchor--bottom {
+  left: 50%;
+  bottom: 0;
+  margin-bottom: var(--anchor-margin);
+  margin-left: var(--anchor-margin);
+  cursor: s-resize;
+}
+
+.anchor--bottom-left {
+  left: 0;
+  bottom: 0;
+  margin-bottom: var(--anchor-margin);
+  margin-left: var(--anchor-margin);
+  cursor: sw-resize;
+}
+
+.anchor--left {
+  left: 0;
+  top: 50%;
+  margin-left: var(--anchor-margin);
+  margin-top: var(--anchor-margin);
+  cursor: w-resize;
+}
+
+.rotatorHandle {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  margin-right: -30px;
+  margin-top: var(--anchor-margin);
+  color: cornflowerblue;
+  cursor: crosshair;
+  user-select: none;
+}
+
+.rotatorHandle::before {
+  display: block;
+  content: "";
+  box-sizing: border-box;
+  width: 25px;
+  height: 10px;
+  background-clip: content-box;
+  background-color: cornflowerblue;
+  padding: 4px 0;
+  margin-left: -20px;
+  pointer-events: none;
+}

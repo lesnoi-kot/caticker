@@ -2,28 +2,29 @@ import { useWorkspaceItemIds, useWorkspaceItem } from "@/store/workspace";
 import { useItemTransform } from "@/store/transforms";
 import { WorkspaceItemType } from "@/store/types";
 
-import Picture from "./Picture";
-import Text from "./Text";
+import Picture from "./stageItems/Picture";
+import Text from "./stageItems/Text";
 import TransformContainer from "./TransformContainer";
 import KeyboardHandler from "./KeyboardHandler";
-import Figure from "./Figure";
+import Figure from "./stageItems/Figure";
 import AreaSelector from "./AreaSelector";
-import { SidebarMenu } from "./SidebarMenu";
 import Canvas from "./Canvas";
 import { Selection } from "./Selection";
+import { WorkspaceContex, useCreateWorkspaceRef } from "./hooks";
 
-import "./Workspace.css";
+export function Workspace() {
+  const workspaceHandlers = useCreateWorkspaceRef();
 
-export default function Workspace() {
   return (
-    <div className="flex items-center gap-4 relative min-h-[512px] min-w-[512px] w-full h-full">
-      <Canvas>
+    <div className="flex items-center gap-4 relative min-h-[512px] max-w-[512px]">
+      <WorkspaceContex.Provider value={workspaceHandlers}>
         <KeyboardHandler />
-        <AreaSelector />
-        <Items />
-        <Selection />
-      </Canvas>
-      <SidebarMenu />
+        <Canvas>
+          <AreaSelector />
+          <Items />
+          <Selection />
+        </Canvas>
+      </WorkspaceContex.Provider>
     </div>
   );
 }

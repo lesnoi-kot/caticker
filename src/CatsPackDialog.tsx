@@ -1,14 +1,14 @@
 import { MouseEventHandler, useRef } from "react";
 
-import { makePictureItem, useWorkspaceStoreActions } from "../store/workspace";
+import { makePictureItem, useWorkspaceStoreActions } from "./store/workspace";
 
-import funny1 from "../assets/cats/funny1.png";
-import grumpy1 from "../assets/cats/grumpy1.jpg";
-import thinking1 from "../assets/cats/thinking1.png";
-import vaska1 from "../assets/cats/vaska1.webp";
-import grumpy2 from "../assets/cats/grumpy2.webp";
-import chmonya from "../assets/cats/chmonya.webp";
-import crying1 from "../assets/cats/crying1.png";
+import funny1 from "./assets/cats/funny1.png";
+import grumpy1 from "./assets/cats/grumpy1.jpg";
+import thinking1 from "./assets/cats/thinking1.png";
+import vaska1 from "./assets/cats/vaska1.webp";
+import grumpy2 from "./assets/cats/grumpy2.webp";
+import chmonya from "./assets/cats/chmonya.webp";
+import crying1 from "./assets/cats/crying1.png";
 
 const images = [
   ["Задумчивый", thinking1],

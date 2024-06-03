@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef } from "react";
-import cn from "classnames";
+import clsx from "clsx";
 
 import { useSelectedItemIds } from "@/store/workspace";
 import {
@@ -12,8 +12,8 @@ import {
 
 import { useWorkspaceRef } from "./hooks";
 import { RESIZER_TYPES } from "./types";
-import ResizerDot from "./ResizerDot";
-import RotatorHandle from "./RotatorHandle";
+import ResizerDot from "./ui/ResizerDot";
+import RotatorHandle from "./ui/RotatorHandle";
 
 export function Selection() {
   const { onItemResizeStart, onItemRotateStart } = useWorkspaceRef();
@@ -53,8 +53,8 @@ export function Selection() {
     <div
       ref={selectionRef}
       draggable={false}
-      className={cn(
-        "workspace__stage-item__selection",
+      className={clsx(
+        " absolute pointer-events-none origin-top-left outline-dashed outline-1 outline-slate-950",
         selectedItemIds.length === 0 && "hidden"
       )}
     >

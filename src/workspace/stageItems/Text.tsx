@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from "react";
+import clsx from "clsx";
 
 import { WorkspaceText, useWorkspaceStore } from "@/store/workspace";
 import { runInUndoHistory } from "@/store/undo";
 import { useTransformStore } from "@/store/transforms";
 
-import type { ItemComponentInterface } from "./types";
+import type { ItemComponentInterface } from "../types";
+import css from "./stageItems.module.css";
 
 type Props = ItemComponentInterface<WorkspaceText>;
 
@@ -44,7 +46,7 @@ export default function Text({ item, transform }: Props) {
         ref={ref}
         disabled={!editable}
         suppressContentEditableWarning
-        className="workspace__stage-text"
+        className={clsx(css.stageItem, css.text)}
         role="textbox"
         draggable={false}
         style={{

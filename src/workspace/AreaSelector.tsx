@@ -6,6 +6,8 @@ import { getBoxedRelativeXY } from "../utils/events";
 import { fastIntersectionCheck, rectToPoly } from "../utils/math";
 import { useWorkspaceRef } from "./hooks";
 
+import css from "./workspace.module.css";
+
 function useWorkspaceSelectTool() {
   const { workspaceRef } = useWorkspaceRef();
   const selectNone = useWorkspaceStore((store) => store.selectNone);
@@ -120,7 +122,5 @@ function useWorkspaceSelectTool() {
 export default function AreaSelector() {
   const selectTool = useWorkspaceSelectTool();
 
-  return (
-    <div ref={selectTool.selectorRef} className="workspace__result-selector" />
-  );
+  return <div ref={selectTool.selectorRef} className={css.areaSelector} />;
 }
