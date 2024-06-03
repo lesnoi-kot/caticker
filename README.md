@@ -10,6 +10,5 @@
 ## TODO фичи
 
 - добавить больше котов
-- пак айфоновых эмоджи
 - error boundary
 - adobe color picker

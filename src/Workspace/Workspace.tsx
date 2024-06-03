@@ -10,7 +10,6 @@ import Figure from "./Figure";
 import AreaSelector from "./AreaSelector";
 import { SidebarMenu } from "./SidebarMenu";
 import Canvas from "./Canvas";
-import CatsPackDialog from "./CatsPackDialog";
 import { Selection } from "./Selection";
 
 import "./Workspace.css";
@@ -25,7 +24,6 @@ export default function Workspace() {
         <Selection />
       </Canvas>
       <SidebarMenu />
-      <CatsPackDialog />
     </div>
   );
 }

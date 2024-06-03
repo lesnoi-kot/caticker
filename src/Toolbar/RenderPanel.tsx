@@ -88,9 +88,9 @@ export default function RenderPanel() {
             value="webp"
             onChange={onFormatChange}
             checked={format === "webp"}
-            className="radio"
+            className="radio radio-sm radio-secondary"
           />
-          &nbsp;<span className="label-text">webp</span>
+          <span className="label-text ml-2">webp</span>
         </label>
 
         <label className="label cursor-pointer">
@@ -100,9 +100,9 @@ export default function RenderPanel() {
             value="png"
             onChange={onFormatChange}
             checked={format === "png"}
-            className="radio"
+            className="radio radio-sm radio-secondary"
           />
-          &nbsp;<span className="label-text">png</span>
+          <span className="label-text ml-2">png</span>
         </label>
       </div>
 
@@ -113,16 +113,16 @@ export default function RenderPanel() {
           onChange={(e) => {
             modifySettings({ roundBorders: e.target.checked });
           }}
-          className="toggle"
+          className="toggle toggle-secondary border-2"
           checked={roundBorders}
         />
-        &nbsp;<span className="label-text">Закругленные края</span>
+        <span className="label-text ml-2">Закругленные края</span>
       </label>
       <button onClick={onRenderStickerClick} className="btn">
         Превью&nbsp;<kbd className="kbd">q</kbd>
       </button>
-      <button onClick={onRenderDownloadClick} className="btn">
-        Скачать&nbsp;<kbd className="kbd">w</kbd>
+      <button onClick={onRenderDownloadClick} className="btn btn-primary">
+        Скачать&nbsp;<kbd className="kbd text-base-content">w</kbd>
       </button>
     </div>
   );

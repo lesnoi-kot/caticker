@@ -9,21 +9,12 @@
   h3 {
     @apply text-3xl;
   }
-  a {
-    color: #00b7ff;
-    text-decoration: underline;
-  }
 }
 
 :root {
-  color-scheme: light dark;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   -webkit-text-size-adjust: 100%;
-}
-
-dialog::backdrop {
-  background: rgba(0, 0, 0, 0.5);
 }

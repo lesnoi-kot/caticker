@@ -25,7 +25,6 @@ import { runInUndoHistory } from "../store/undo";
 export default function Toolbar() {
   return (
     <div className="flex flex-col gap-8">
-      <MainMenu />
       <ItemMenu />
 
       <div className="flex gap-8 items-start">
@@ -36,20 +35,21 @@ export default function Toolbar() {
   );
 }
 
-function MainMenu() {
+export function MainMenu() {
   const { upsert, selectOne } = useWorkspaceStoreActions();
   const fileRef = useRef<HTMLInputElement>(null);
 
   return (
     <div className="flex gap-4 flex-col">
       <p className="font-bold">Добавить</p>
-      <div className="flex gap-4 items-start flex-wrap">
+      <div className="join join-horizontal">
         <label
           htmlFor="picture"
           onClick={() => {
             fileRef?.current?.click();
           }}
         >
+          <button className="btn join-item">Изображение</button>
           <input
             ref={fileRef}
             type="file"
@@ -73,10 +73,10 @@ function MainMenu() {
             }}
             hidden
           />
-          <button className="btn">Изображение</button>
         </label>
+
         <button
-          className="btn"
+          className="btn join-item"
           onClick={() => {
             const textItem = makeTextItem();
 
@@ -88,8 +88,9 @@ function MainMenu() {
         >
           Текст
         </button>
+
         <button
-          className="btn"
+          className="btn join-item"
           onClick={() => {
             const figureItem = makeFigureItem(FigureType.Rect);
 
@@ -101,8 +102,9 @@ function MainMenu() {
         >
           Прямоугольник
         </button>
+
         <button
-          className="btn"
+          className="btn join-item"
           onClick={() => {
             const figureItem = makeFigureItem(FigureType.Circle);
 
@@ -114,17 +116,19 @@ function MainMenu() {
         >
           Кружок
         </button>
-        <button
-          className="btn"
-          title="Пак котов"
-          onClick={() => {
-            (
-              document.getElementById(catsPackDialogId) as HTMLDialogElement
-            ).showModal();
-          }}
-        >
-          <img src={catEmoji} alt="" height="32" width="32" />
-        </button>
+
+        <div className="tooltip" data-tip="Пак котов">
+          <button
+            className="btn join-item"
+            onClick={() => {
+              (
+                document.getElementById(catsPackDialogId) as HTMLDialogElement
+              ).showModal();
+            }}
+          >
+            <img src={catEmoji} alt="Cat emoji" height="24" width="24" />
+          </button>
+        </div>
       </div>
     </div>
   );

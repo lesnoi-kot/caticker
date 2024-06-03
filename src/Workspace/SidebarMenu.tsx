@@ -1,16 +1,18 @@
 import {
-  TrashIcon,
-  ArrowUpOnSquareStackIcon,
-  ArrowDownOnSquareStackIcon,
-  DocumentDuplicateIcon,
-} from "@heroicons/react/24/solid";
+  Delete,
+  Copy,
+  BringToFront,
+  FlipHorizontal,
+  FlipVertical,
+  SendToBack,
+} from "lucide-react";
 
 import {
   useSelectedItemIds,
   useWorkspaceStoreActions,
 } from "@/store/workspace";
 import { runInUndoHistory } from "@/store/undo";
-import { useTransformActions } from "@/store/transforms";
+import { useTransformActions, useTransformStore } from "@/store/transforms";
 import { useClipboardStore } from "@/store/clipboard";
 
 export function SidebarMenu() {
@@ -37,78 +39,126 @@ export function SidebarMenu() {
 
   return (
     <div className="flex flex-col gap-2">
-      <button
-        className="btn"
-        onClick={() => {
-          runInUndoHistory(() => {
-            selectedItemIds.forEach((id) => {
-              rotateToAround(id, 0);
+      <div className="tooltip" data-tip="Сбросить поворот">
+        <button
+          className="btn"
+          onClick={() => {
+            runInUndoHistory(() => {
+              selectedItemIds.forEach((id) => {
+                rotateToAround(id, 0);
+              });
             });
-          });
-        }}
-      >
-        0°
-      </button>
+          }}
+        >
+          0°
+        </button>
+      </div>
 
-      <button
-        className="btn"
-        title="Оригинальный масштаб"
-        onClick={() => {
-          runInUndoHistory(() => {
-            selectedItemIds.forEach((id) => {
-              scaleTo(id, 1, 1);
+      <div className="tooltip" data-tip="Отразить по горизонтали">
+        <button
+          className="btn"
+          onClick={() => {
+            if (selectedItemIds.length === 0) {
+              return;
+            }
+
+            const transformState = useTransformStore.getState();
+
+            runInUndoHistory(() => {
+              selectedItemIds.forEach((id) => {
+                if (transformState.items[id]) {
+                  scaleTo(
+                    id,
+                    -transformState.items[id].scale.x,
+                    1,
+                    new DOMPoint(0.5, 0.5)
+                  );
+                }
+              });
             });
-          });
-        }}
-      >
-        1x
-      </button>
+          }}
+        >
+          <FlipHorizontal />
+        </button>
+      </div>
 
-      <button
-        className="btn"
-        title="Слой вверх"
-        onClick={() => {
-          runInUndoHistory(() => {
-            changeOrder("up");
-          });
-        }}
-      >
-        <ArrowUpOnSquareStackIcon />
-      </button>
+      <div className="tooltip" data-tip="Отразить по вертикали">
+        <button
+          className="btn"
+          onClick={() => {
+            if (selectedItemIds.length === 0) {
+              return;
+            }
 
-      <button
-        className="btn"
-        title="Слой вниз"
-        onClick={() => {
-          runInUndoHistory(() => {
-            changeOrder("down");
-          });
-        }}
-      >
-        <ArrowDownOnSquareStackIcon />
-      </button>
+            const transformState = useTransformStore.getState();
 
-      <button
-        className="btn"
-        title="Скопировать"
-        onClick={() => {
-          copyItems(selectedItemIds);
-        }}
-      >
-        <DocumentDuplicateIcon />
-      </button>
+            runInUndoHistory(() => {
+              selectedItemIds.forEach((id) => {
+                if (transformState.items[id]) {
+                  scaleTo(
+                    id,
+                    1,
+                    -transformState.items[id].scale.y,
+                    new DOMPoint(0.5, 0.5)
+                  );
+                }
+              });
+            });
+          }}
+        >
+          <FlipVertical />
+        </button>
+      </div>
 
-      <button
-        className="btn"
-        title="Удалить"
-        onClick={() => {
-          runInUndoHistory(() => {
-            removeMultiple(selectedItemIds);
-          });
-        }}
-      >
-        <TrashIcon />
-      </button>
+      <div className="tooltip" data-tip="Слой вверх">
+        <button
+          className="btn"
+          onClick={() => {
+            runInUndoHistory(() => {
+              changeOrder("up");
+            });
+          }}
+        >
+          <BringToFront />
+        </button>
+      </div>
+
+      <div className="tooltip" data-tip="Слой вниз">
+        <button
+          className="btn"
+          onClick={() => {
+            runInUndoHistory(() => {
+              changeOrder("down");
+            });
+          }}
+        >
+          <SendToBack />
+        </button>
+      </div>
+
+      <div className="tooltip" data-tip="Скопировать">
+        <button
+          className="btn"
+          onClick={() => {
+            copyItems(selectedItemIds);
+          }}
+        >
+          <Copy />
+        </button>
+      </div>
+
+      <div className="tooltip" data-tip="Удалить">
+        <button
+          className="btn btn-error"
+          onClick={() => {
+            runInUndoHistory(() => {
+              removeMultiple(selectedItemIds);
+            });
+          }}
+        >
+          <Delete />
+        </button>
+      </div>
     </div>
   );
 }

@@ -73,7 +73,7 @@ function Canvas({ children }: { children: ReactNode }) {
   return (
     <div
       ref={workspaceRef}
-      className="workspace__result-window shadow"
+      className="workspace__result-window shadow-xl"
       style={{
         width: `${settings.stageWidth}px`,
         height: `${settings.stageHeight}px`,

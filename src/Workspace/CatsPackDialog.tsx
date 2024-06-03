@@ -8,6 +8,7 @@ import thinking1 from "../assets/cats/thinking1.png";
 import vaska1 from "../assets/cats/vaska1.webp";
 import grumpy2 from "../assets/cats/grumpy2.webp";
 import chmonya from "../assets/cats/chmonya.webp";
+import crying1 from "../assets/cats/crying1.png";
 
 const images = [
   ["Задумчивый", thinking1],
@@ -16,6 +17,7 @@ const images = [
   ["Васька", vaska1],
   ["Критически настроенный", grumpy2],
   ["Чмоня", chmonya],
+  ["Зачем ты ето сделал", crying1],
 ];
 
 export const catsPackDialogId = "cats-pack-dialog";
@@ -51,11 +53,16 @@ export default function CatsPackDialog() {
       onKeyDown={(e) => {
         e.stopPropagation();
       }}
-      className="rounded"
+      className=" modal"
     >
-      <div className="p-4">
-        <h3 className="text-xl mb-4">Пак котов</h3>
-        <ul className="flex flex-row justify-center flex-wrap gap-8 max-w-sm">
+      <div className="modal-box">
+        <form method="dialog">
+          <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2 text-base-content">
+            ✕
+          </button>
+        </form>
+        <h3 className="font-bold text-lg text-[hotpink]">Пак котов</h3>
+        <ul className="flex flex-row justify-center flex-wrap py-4 gap-8 max-w-sm">
           {images.map(([name, src]) => (
             <li className="basis-1/4" key={name}>
               <img
@@ -66,7 +73,7 @@ export default function CatsPackDialog() {
                 loading="lazy"
               />
 
-              {name}
+              <span className="text-base-content">{name}</span>
             </li>
           ))}
         </ul>

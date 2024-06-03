@@ -14,7 +14,7 @@ export default {
   },
   plugins: [typography, daisyui],
   daisyui: {
-    themes: false,
+    themes: ["cupcake", "dark"],
     darkTheme: "dark",
     base: false,
     styled: true,
