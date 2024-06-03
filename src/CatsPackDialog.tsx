@@ -9,6 +9,7 @@ import vaska1 from "./assets/cats/vaska1.webp";
 import grumpy2 from "./assets/cats/grumpy2.webp";
 import chmonya from "./assets/cats/chmonya.webp";
 import crying1 from "./assets/cats/crying1.png";
+import wut1 from "./assets/cats/wut1.webp";
 
 const images = [
   ["Задумчивый", thinking1],
@@ -18,6 +19,7 @@ const images = [
   ["Критически настроенный", grumpy2],
   ["Чмоня", chmonya],
   ["Зачем ты ето сделал", crying1],
+  ["Wut", wut1],
 ];
 
 export const catsPackDialogId = "cats-pack-dialog";

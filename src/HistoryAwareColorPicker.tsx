@@ -1,39 +1,39 @@
 import { useRef } from "react";
-import { ChromePicker, ChromePickerProps } from "react-color";
+import { HslaStringColorPicker } from "react-colorful";
+import { useDebouncedCallback } from "use-debounce";
 
 import { HistoryComparer, useUndoStore } from "./store/undo";
-import { getRGBAString } from "./utils/colors";
 
-type Props = Omit<ChromePickerProps, "onChange" | "onChangeComplete"> & {
-  onChange: (color: string, event: React.ChangeEvent<HTMLInputElement>) => void;
-};
-
-export default function HistoryAwareColorPicker({ onChange, ...props }: Props) {
+export default function HistoryAwareColorPicker({
+  onChange,
+  color,
+  ...props
+}: React.ComponentProps<typeof HslaStringColorPicker>) {
   const pushHistory = useUndoStore((store) => store.push);
   const commited = useRef(true);
   const historyComparer = useRef<HistoryComparer>(new HistoryComparer());
 
+  const debouncedOnChange = useDebouncedCallback(() => {
+    if (!commited.current) {
+      const possibleAction = historyComparer.current.compareToCurrentStates();
+      if (possibleAction) {
+        pushHistory(possibleAction);
+      }
+    }
+    commited.current = true;
+  }, 500);
+
   return (
-    <ChromePicker
+    <HslaStringColorPicker
       {...props}
-      onChange={(color, event) => {
+      color={color}
+      onChange={(color) => {
         if (commited.current) {
           historyComparer.current.start();
-          commited.current = false;
         }
-
-        onChange(getRGBAString(color.rgb), event);
-      }}
-      onChangeComplete={() => {
-        if (!commited.current) {
-          const possibleAction =
-            historyComparer.current.compareToCurrentStates();
-          commited.current = true;
-
-          if (possibleAction) {
-            pushHistory(possibleAction);
-          }
-        }
+        commited.current = false;
+        onChange?.(color);
+        debouncedOnChange();
       }}
     />
   );

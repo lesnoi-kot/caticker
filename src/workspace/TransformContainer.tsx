@@ -8,7 +8,7 @@ type Props = PropsWithChildren & {
   id: string;
 };
 
-function TransformContainer({ id, children }: Props) {
+export function TransformContainer({ id, children }: Props) {
   const { onItemPress } = useWorkspaceRef();
 
   const innerRef = useRef<HTMLDivElement>(null);
@@ -42,4 +42,5 @@ function TransformContainer({ id, children }: Props) {
   );
 }
 
-export default memo(TransformContainer);
+const MemoizedTransformContainer = memo(TransformContainer);
+export default MemoizedTransformContainer;

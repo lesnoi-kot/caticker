@@ -54,7 +54,7 @@ export const makeTextItem = (): WorkspaceText => ({
   type: WorkspaceItemType.Text,
   layer: 0,
   text: "Введи текст!",
-  color: "black",
+  color: "hsl(0, 0%, 0%, 1)",
   fontFamily: "system-ui",
   fontSize: 32,
   fontItalic: false,
@@ -67,7 +67,7 @@ export const makeFigureItem = (figure: FigureType): WorkspaceFigure => ({
   type: WorkspaceItemType.Figure,
   layer: 0,
   figure,
-  color: `hsl(${(Math.random() * 360).toFixed()} 100% 75%)`,
+  color: `hsl(${(Math.random() * 360).toFixed()}, 100%, 75%, 1)`,
 });
 
 type StageSettings = {
@@ -87,7 +87,7 @@ export const useWorkspaceStore = createWithEqualityFn(
         settings: {
           stageWidth: STICKER_MAX_SIZE,
           stageHeight: STICKER_MAX_SIZE,
-          stageColor: "rgba(255, 255, 255, 0)",
+          stageColor: "hsla(0, 0%, 100%, 0)",
           roundBorders: true,
         } as StageSettings,
       },
