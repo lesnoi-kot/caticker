@@ -43,15 +43,15 @@ export async function renderSticker(
   ctx.fillRect(0, 0, width, height);
 
   for (const item of workspaceItems) {
-    const g = transformItems[item.id];
+    const transform = transformItems[item.id];
 
     ctx.save();
-    ctx.setTransform(g.transform);
+    ctx.setTransform(transform.transform);
 
     if (item.type === WorkspaceItemType.Picture) {
       await renderImage(ctx, args, item);
     } else if (item.type === WorkspaceItemType.Text) {
-      renderText(ctx, args, item);
+      renderText(ctx, item, transform);
     } else if (item.type === WorkspaceItemType.Figure) {
       renderFigure(ctx, args, item);
     }
@@ -96,39 +96,70 @@ function renderFigure(
 
 function renderText(
   ctx: OffscreenCanvasRenderingContext2D,
-  args: RenderStickerArguments,
-  item: WorkspaceText
+  item: WorkspaceText,
+  transform: ItemGeometryInfo
 ) {
-  const {
-    text,
-    color,
-    strokeColor,
-    strokeWidth,
-    fontFamily,
-    fontSize,
-    fontItalic,
-  } = item;
-
-  ctx.strokeStyle = strokeColor;
-  ctx.lineWidth = strokeWidth;
-  ctx.fillStyle = color;
+  const { fontFamily, fontSize, fontItalic } = item;
+  ctx.strokeStyle = item.strokeColor;
+  ctx.lineWidth = item.strokeWidth;
+  ctx.fillStyle = item.color;
   ctx.font = `${fontItalic ? "italic " : ""}${fontSize}px "${fontFamily}"`;
   ctx.textBaseline = "top";
-  drawMultilineText(ctx, text, fontSize, strokeWidth);
+  ctx.textAlign = "left";
+  drawMultilineText(
+    ctx,
+    item.text,
+    fontSize,
+    item.strokeWidth,
+    transform.width
+  );
 }
 
 function drawMultilineText(
   ctx: OffscreenCanvasRenderingContext2D,
   text: string,
   fontSize: number,
-  lineWidth: number
+  lineWidth: number,
+  maxWidth: number
 ) {
-  const lines = text.split("\n");
-
+  const lines = breakLines(ctx, text, maxWidth);
+  const offset = fontSize / 16;
   lines.forEach((line, i) => {
-    ctx.fillText(line, 0, fontSize * i);
+    ctx.fillText(line, 0, fontSize * i + offset, maxWidth);
     if (lineWidth !== 0) {
-      ctx.strokeText(line, 0, fontSize * i);
+      ctx.strokeText(line, 0, fontSize * i, maxWidth);
     }
   });
+}
+
+// Break textbox value by letters.
+// TODO: implement word break.
+function breakLines(
+  ctx: OffscreenCanvasRenderingContext2D,
+  text: string,
+  maxWidth: number
+): string[] {
+  const lines: string[] = [];
+  let i: number, j: number;
+
+  for (i = 0, j = 0; i < text.length; ++i) {
+    if (text[i] === "\n") {
+      lines.push(text.substring(j, i));
+      j = i + 1;
+      continue;
+    }
+
+    const metrics = ctx.measureText(text.substring(j, i + 1));
+    if (metrics.width > maxWidth) {
+      lines.push(text.substring(j, i));
+      j = i;
+    }
+  }
+
+  const lastPart = text.substring(j);
+  if (lastPart) {
+    lines.push(lastPart);
+  }
+
+  return lines;
 }

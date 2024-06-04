@@ -55,7 +55,7 @@ export const makeTextItem = (): WorkspaceText => ({
   layer: 0,
   text: "Введи текст!",
   color: "hsl(0, 0%, 0%, 1)",
-  fontFamily: "system-ui",
+  fontFamily: "Arial",
   fontSize: 32,
   fontItalic: false,
   strokeColor: "white",
@@ -93,12 +93,17 @@ export const useWorkspaceStore = createWithEqualityFn(
       },
 
       (set) => ({
-        upsert: (item: WorkspaceAnyItem, options?: CreateActionOptions) => {
+        upsert: (item: WorkspaceAnyItem, options: CreateActionOptions = {}) => {
+          if (item.type === WorkspaceItemType.Text) {
+            options.height ??= item.fontSize;
+          }
+
           useTransformStore.getState().create(item.id, options);
 
           set((state) => {
             state.stageItems[item.id] = item;
           });
+          useWorkspaceStore.getState().layerUp(item.id);
         },
 
         remove: (id: string) => {

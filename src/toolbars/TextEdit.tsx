@@ -4,14 +4,7 @@ import ColorPicker from "../HistoryAwareColorPicker";
 
 const FONT_INCREASE_SPEED = 10 / 100;
 
-const fonts = [
-  "system-ui",
-  "Arial",
-  "Times New Roman",
-  "Georgia",
-  "Courier New",
-  "Lobster",
-];
+const fonts = ["Arial", "Times New Roman", "Georgia", "Courier New", "Lobster"];
 
 export default function TextEdit({ item }: { item: WorkspaceText }) {
   const upsert = useWorkspaceStore((store) => store.upsert);

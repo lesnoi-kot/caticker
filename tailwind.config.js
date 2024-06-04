@@ -12,6 +12,7 @@ export default {
       },
     },
   },
+  safelist: [{ pattern: /cursor/ }],
   plugins: [typography, daisyui],
   daisyui: {
     themes: ["cupcake", "dark"],

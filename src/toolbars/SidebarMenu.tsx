@@ -41,7 +41,7 @@ export function SidebarMenu() {
     <div className="flex flex-col gap-2">
       <div className="tooltip" data-tip="Сбросить поворот">
         <button
-          className="btn"
+          className="btn btn-circle"
           onClick={() => {
             runInUndoHistory(() => {
               selectedItemIds.forEach((id) => {
@@ -56,7 +56,7 @@ export function SidebarMenu() {
 
       <div className="tooltip" data-tip="Отразить по горизонтали">
         <button
-          className="btn"
+          className="btn btn-circle"
           onClick={() => {
             if (selectedItemIds.length === 0) {
               return;
@@ -84,7 +84,7 @@ export function SidebarMenu() {
 
       <div className="tooltip" data-tip="Отразить по вертикали">
         <button
-          className="btn"
+          className="btn btn-circle"
           onClick={() => {
             if (selectedItemIds.length === 0) {
               return;
@@ -112,7 +112,7 @@ export function SidebarMenu() {
 
       <div className="tooltip" data-tip="Слой вверх">
         <button
-          className="btn"
+          className="btn btn-circle"
           onClick={() => {
             runInUndoHistory(() => {
               changeOrder("up");
@@ -125,7 +125,7 @@ export function SidebarMenu() {
 
       <div className="tooltip" data-tip="Слой вниз">
         <button
-          className="btn"
+          className="btn btn-circle"
           onClick={() => {
             runInUndoHistory(() => {
               changeOrder("down");
@@ -138,7 +138,7 @@ export function SidebarMenu() {
 
       <div className="tooltip" data-tip="Скопировать">
         <button
-          className="btn"
+          className="btn btn-circle"
           onClick={() => {
             copyItems(selectedItemIds);
           }}
@@ -149,7 +149,7 @@ export function SidebarMenu() {
 
       <div className="tooltip" data-tip="Удалить">
         <button
-          className="btn btn-error"
+          className="btn btn-error btn-circle"
           onClick={() => {
             runInUndoHistory(() => {
               removeMultiple(selectedItemIds);

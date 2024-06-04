@@ -2,13 +2,12 @@
 
 ## Баги
 
-- при вставке картинки, она не на самом верху
-- 1x не работает
-- кнопки отстой
-- курсор
+- textbox двигается вниз
 
 ## TODO фичи
 
 - добавить больше котов
+- no smooth image scaling
+- block layer
+- context menu
 - error boundary
-- adobe color picker

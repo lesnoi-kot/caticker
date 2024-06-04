@@ -27,7 +27,14 @@ export default function Text({ item, transform }: Props) {
     if (ref.current && ref.current.scrollHeight > transform.height) {
       resize(item.id, undefined, ref.current.scrollHeight);
     }
-  }, [resize, item.id, transform.width, transform.height]);
+  }, [
+    resize,
+    item.id,
+    item.fontSize,
+    item.fontFamily,
+    transform.width,
+    transform.height,
+  ]);
 
   return (
     <div
@@ -74,7 +81,7 @@ export default function Text({ item, transform }: Props) {
         onBlur={(e) => {
           setEditable(false);
 
-          if (!(ref.current?.value ?? "").trim()) {
+          if (!(e.target.value ?? "").trim()) {
             runInUndoHistory(() => {
               remove(item.id);
             });

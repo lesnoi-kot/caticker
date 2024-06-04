@@ -184,6 +184,12 @@ export const useCreateWorkspaceRef = (): WorkspaceContexData => {
 
     onModificationEnd();
 
+    document.body.classList.remove(
+      ...Array.from(document.body.classList.values()).filter((className) =>
+        className.includes("cursor")
+      )
+    );
+
     useWorkspaceStore.getState().selectedItems.forEach((id) => {
       recalculatePolygonAndRotationPoint(id);
     });
@@ -223,6 +229,7 @@ export const useCreateWorkspaceRef = (): WorkspaceContexData => {
 
         selectOne(itemId);
         onModificationStart();
+        document.body.classList.add("[&_*]:cursor-crosshair");
         document.addEventListener("mousemove", onItemRotate);
         document.addEventListener("mouseup", onMouseUp, { once: true });
       }
@@ -234,6 +241,9 @@ export const useCreateWorkspaceRef = (): WorkspaceContexData => {
     (type: ResizerType, event: MouseEvent) => {
       if (event.button === 0) {
         window.getSelection()?.removeAllRanges();
+        document.body.classList.add(
+          `[&_*]:${(event.target as HTMLElement).dataset.cursorClass ?? ""}`
+        );
 
         resizeDirection.current = type;
         onModificationStart();

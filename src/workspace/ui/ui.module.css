@@ -1,5 +1,5 @@
 .anchor {
-  --anchor-size: 10px;
+  --anchor-size: 12px;
   --anchor-margin: calc(-1 * var(--anchor-size) / 2);
 
   position: absolute;
@@ -17,7 +17,6 @@
   top: 0;
   margin-left: var(--anchor-margin);
   margin-top: var(--anchor-margin);
-  cursor: nw-resize;
 }
 
 .anchor--top {
@@ -25,7 +24,6 @@
   top: 0;
   margin-right: var(--anchor-margin);
   margin-top: var(--anchor-margin);
-  cursor: n-resize;
 }
 
 .anchor--top-right {
@@ -33,7 +31,6 @@
   top: 0;
   margin-right: var(--anchor-margin);
   margin-top: var(--anchor-margin);
-  cursor: ne-resize;
 }
 
 .anchor--right {
@@ -41,7 +38,6 @@
   top: 50%;
   margin-right: var(--anchor-margin);
   margin-top: var(--anchor-margin);
-  cursor: e-resize;
 }
 
 .anchor--bottom-right {
@@ -49,7 +45,6 @@
   bottom: 0;
   margin-right: var(--anchor-margin);
   margin-bottom: var(--anchor-margin);
-  cursor: se-resize;
 }
 
 .anchor--bottom {
@@ -57,7 +52,6 @@
   bottom: 0;
   margin-bottom: var(--anchor-margin);
   margin-left: var(--anchor-margin);
-  cursor: s-resize;
 }
 
 .anchor--bottom-left {
@@ -65,7 +59,6 @@
   bottom: 0;
   margin-bottom: var(--anchor-margin);
   margin-left: var(--anchor-margin);
-  cursor: sw-resize;
 }
 
 .anchor--left {
@@ -73,7 +66,6 @@
   top: 50%;
   margin-left: var(--anchor-margin);
   margin-top: var(--anchor-margin);
-  cursor: w-resize;
 }
 
 .rotatorHandle {
@@ -92,7 +84,7 @@
   content: "";
   box-sizing: border-box;
   width: 25px;
-  height: 10px;
+  height: var(--anchor-size);
   background-clip: content-box;
   background-color: cornflowerblue;
   padding: 4px 0;
